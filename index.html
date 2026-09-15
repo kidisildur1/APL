@@ -204,6 +204,7 @@
                 <nav class="nav-tabs">
                     <button class="nav-tab active" data-tab="current">📊 Таблица</button>
                     <button class="nav-tab" data-tab="fpl">🎮 Fantasy</button>
+                    <button class="nav-tab" data-tab="athletics">🏟 Атлетики</button>
                     <button class="nav-tab" data-tab="tour-analysis">🧠 Анализ тура</button>
                     <button class="nav-tab" data-tab="denis">👤 Денис</button>
                     <button class="nav-tab" data-tab="dima">👤 Дима</button>
@@ -258,6 +259,11 @@
         <div id="tour-analysis" class="tab-content">
             <h2 class="section-title">🧠 Анализ Fantasy-тура</h2>
             <div id="tourAnalysis" aria-live="polite"></div>
+        </div>
+
+        <div id="athletics" class="tab-content">
+            <h2 class="section-title">🏟 Лига топ Атлетиков Бальбовцев</h2>
+            <div id="athleticsAnalysis" aria-live="polite"><div class="analysis-empty">Загружаем вторую лигу…</div></div>
         </div>
 
         <div id="denis" class="tab-content">
@@ -504,6 +510,24 @@
         }
 
         let fantasySeason = null;
+        async function renderAthleticsLeague() {
+            const host = document.getElementById('athleticsAnalysis');
+            try {
+                const [ratingFile, squadsFile] = await Promise.all([
+                    fetch('./data/leagues/44923.json', {cache:'no-store'}).then(r => r.json()),
+                    fetch('./data/leagues/44923-squads.json', {cache:'no-store'}).then(r => r.json())
+                ]);
+                const league = ratingFile.data?.fantasyQueries?.league;
+                const rating = ratingFile.data?.fantasyQueries?.rating?.squads?.list || [];
+                const names = Object.fromEntries(rating.map(row => [row.squad.id, row.squad.name]));
+                const all = Object.entries(squadsFile.squads || {}).flatMap(([id, squad]) => (squad.players || []).map(p => ({...p, score:Number(p.score ?? 0), owner:names[id] || 'Команда'})));
+                const best = all.filter(p => p.isStarting).sort((a,b) => b.score-a.score).slice(0,6);
+                const bench = all.filter(p => !p.isStarting && p.score > 1).sort((a,b) => b.score-a.score).slice(0,6);
+                const kit = p => p.seasonPlayer?.team?.svgKit?.url ? `<img class="impact-kit" src="${escapeHTML(p.seasonPlayer.team.svgKit.url)}" alt="">` : '<span class="impact-kit">👕</span>';
+                const item = p => `<div class="impact-item">${kit(p)}<div><div class="impact-name">${escapeHTML(p.seasonPlayer.name)}</div><div class="impact-team">${escapeHTML(p.owner)} · ${escapeHTML(p.seasonPlayer.team?.name || '')}${p.isCaptain?' · КАПИТАН':''}</div></div><div class="impact-points">${p.score}<small>очков</small></div></div>`;
+                host.innerHTML = `<div class="chaos-banner"><span><i class="chaos-dot"></i>${escapeHTML(league?.name || 'Лига')} · ${rating.length} команд</span><span>🎪 Второй дивизион хаоса</span></div><div class="tour-analysis"><article class="analysis-hero"><div class="analysis-eyebrow">${escapeHTML(squadsFile.tour?.name || 'Тур')} · public league scan</div><h3>12 команд. Один мяч. Ноль спокойствия.</h3><p>Полный рейтинг второй лиги и разбор публичных составов: кто принёс максимум, а кто оставил очки на скамейке.</p><div class="analysis-stickers"><span class="sticker">👑 ${escapeHTML(rating[0]?.squad?.name || '—')}</span><span class="sticker">📊 ${rating[0]?.scoreInfo?.score || '—'} очк.</span><span class="sticker">🪑 ${bench.reduce((s,p)=>s+p.score,0)} очк. на лавке</span></div></article><div class="analysis-side"><article class="fun-card"><span class="fun-emoji">🏆</span><h4>Топ рейтинга</h4><p>${rating.slice(0,3).map(r => '#'+r.scoreInfo.place+' '+escapeHTML(r.squad.name)).join('<br>')}</p></article><article class="fun-card"><span class="fun-emoji">🛋️</span><h4>Лавка в огне</h4><p>${bench.length ? escapeHTML(bench[0].seasonPlayer.name)+' набрал '+bench[0].score+' очков вне старта.' : 'На лавке без сюжета.'}</p></article></div></div><div class="impact-grid"><section class="impact-panel"><h3>🚀 Лучшие игроки лиги</h3>${best.map(item).join('')}</section><section class="impact-panel"><h3>🪑 Топ очков на замене</h3>${bench.length?bench.map(item).join(''):'<div class="analysis-empty">Лавка молчит</div>'}</section><section class="impact-panel"><h3>📈 Рейтинг лиги</h3>${rating.slice(0,6).map(row=>`<div class="impact-item"><span class="impact-kit">${row.scoreInfo.place<=3?['🥇','🥈','🥉'][row.scoreInfo.place-1]:'⚽'}</span><div><div class="impact-name">${escapeHTML(row.squad.name)}</div><div class="impact-team">${row.scoreInfo.scoreForLastTour} очк. за тур</div></div><div class="impact-points">${row.scoreInfo.score}<small>всего</small></div></div>`).join('')}</section></div>`;
+            } catch (error) { host.innerHTML = `<div class="analysis-empty">⚠️ Не удалось загрузить вторую лигу: ${escapeHTML(error.message)}</div>`; }
+        }
         let squadRequest = 0;
         let squadAbort = null;
         let refreshingFantasy = false;
@@ -737,6 +761,7 @@
             renderTeams();
             renderFPLLeaderboard();
             renderTourAnalysis();
+            renderAthleticsLeague();
             await Promise.allSettled([updateAllData(), loadFPLData()]);
             setInterval(refreshFantasy, 60000);
             document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshFantasy(); });
