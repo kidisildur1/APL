@@ -37,6 +37,7 @@
         .nav-tabs { display: flex; gap: 0.5rem; padding: 0.5rem; background: var(--bg-glass); border-radius: 12px; border: 1px solid var(--border); min-width: max-content; }
         .nav-tab { padding: 0.7rem 1.2rem; border: none; background: transparent; color: var(--text-secondary); font-family: inherit; font-weight: 600; font-size: 0.85rem; border-radius: 8px; cursor: pointer; white-space: nowrap; }
         .nav-tab.active { color: white; background: var(--gradient-pl); }
+        .league-switcher,.forecast-switcher{display:flex;gap:.55rem;flex-wrap:wrap;margin:0 0 1rem}.league-switcher button,.forecast-switcher button{border:1px solid var(--border);background:var(--bg-card);color:var(--text-secondary);padding:.62rem .85rem;border-radius:10px;font:inherit;font-weight:800;cursor:pointer}.league-switcher button.active,.forecast-switcher button.active{background:var(--gradient-pl);border-color:transparent;color:white}.league-panel[hidden],.analysis-panel[hidden],.forecast-pane[hidden]{display:none!important}
         .container { max-width: 1400px; margin: 0 auto; padding: 1.5rem 1rem; }
         .tab-content { display: none; animation: slideIn 0.4s; }
         .tab-content.active { display: block; }
@@ -207,12 +208,8 @@
                 <nav class="nav-tabs">
                     <button class="nav-tab active" data-tab="current">📊 Таблица</button>
                     <button class="nav-tab" data-tab="fpl">🎮 Fantasy</button>
-                    <button class="nav-tab" data-tab="athletics">🏟 Атлетики</button>
                     <button class="nav-tab" data-tab="tour-analysis">🧠 Анализ тура</button>
-                    <button class="nav-tab" data-tab="denis">👤 Денис</button>
-                    <button class="nav-tab" data-tab="dima">👤 Дима</button>
-                    <button class="nav-tab" data-tab="ilya">👤 Илья</button>
-                    <button class="nav-tab" data-tab="comparison">📈 Сравнение</button>
+                    <button class="nav-tab" data-tab="predictions">🔮 Прогнозы АПЛ</button>
                     <button class="nav-tab" data-tab="teams">️ Команды</button>
                 </nav>
             </div>
@@ -235,6 +232,8 @@
 
         <div id="fpl" class="tab-content">
             <h2 class="section-title">🎮 Fantasy Sports.ru</h2>
+            <div class="league-switcher" aria-label="Выбор Fantasy-лиги"><button class="active" data-league="three">👥 Три товарища</button><button data-league="athletics">🏟 Атлетики</button></div>
+            <div id="fplThreeLeague" class="league-panel">
             <div class="table-wrapper">
                 <div class="table-header"><h2>🔄 Лига «Три товарища» — Fantasy АПЛ</h2></div>
                 <div style="padding: 1.2rem;">
@@ -257,17 +256,22 @@
                 <p id="squadStatus" role="status" aria-live="polite"></p>
                 <div id="squadPlayers"></div>
             </section>
+            </div>
+            <div id="fplAthleticsLeague" class="league-panel" hidden><div class="table-wrapper"><div class="table-header"><h2>🏟 Атлетики — общий зачёт</h2></div><div class="fpl-leaderboard" id="athleticsLeaderboard"></div></div><p class="pitch-caption">Составы и подробный разбор этой лиги находятся во вкладке «Анализ тура».</p></div>
         </div>
 
         <div id="tour-analysis" class="tab-content">
             <h2 class="section-title">🧠 Анализ Fantasy-тура</h2>
-            <div id="tourAnalysis" aria-live="polite"></div>
+            <div class="league-switcher" aria-label="Выбор лиги для анализа"><button class="active" data-analysis-league="three">👥 Три товарища</button><button data-analysis-league="athletics">🏟 Атлетики</button></div>
+            <div id="analysisThreeLeague" class="analysis-panel"><div id="tourAnalysis" aria-live="polite"></div></div>
+            <div id="analysisAthleticsLeague" class="analysis-panel" hidden></div>
         </div>
 
-        <div id="athletics" class="tab-content">
-            <h2 class="section-title">🏟 Лига топ Атлетиков Бальбовцев</h2>
+        <div id="athletics" hidden>
             <div id="athleticsAnalysis" aria-live="polite"><div class="analysis-empty">Загружаем вторую лигу…</div></div>
         </div>
+
+        <div id="predictions" class="tab-content"><h2 class="section-title">🔮 Прогнозы АПЛ</h2><div class="forecast-switcher" aria-label="Выбор прогноза"><button class="active" data-forecast="denis">👤 Денис</button><button data-forecast="dima">👤 Дима</button><button data-forecast="ilya">👤 Илья</button><button data-forecast="comparison">📈 Сравнение</button></div><div id="forecastHost"></div></div>
 
         <div id="denis" class="tab-content">
             <div class="user-section">
@@ -526,6 +530,8 @@
                 ]);
                 const league = ratingFile.data?.fantasyQueries?.league;
                 const rating = ratingFile.data?.fantasyQueries?.rating?.squads?.list || [];
+                const board = document.getElementById('athleticsLeaderboard');
+                if (board) board.innerHTML = rating.map(row => `<div class="fpl-card"><div class="fpl-rank">#${row.scoreInfo.place}</div><div class="fpl-name">${escapeHTML(row.squad.name)}</div><div style="font-size:2.5rem;font-weight:800">${row.scoreInfo.score}</div><div>очков · ${row.scoreInfo.scoreForLastTour} за последний тур</div></div>`).join('');
                 const names = Object.fromEntries(rating.map(row => [row.squad.id, row.squad.name]));
                 const all = Object.entries(squadsFile.squads || {}).flatMap(([id, squad]) => (squad.players || []).map(p => ({...p, score:Number(p.score ?? 0), owner:names[id] || 'Команда'})));
                 const best = all.filter(p => p.isStarting).sort((a,b) => b.score-a.score).slice(0,6);
@@ -764,8 +770,18 @@
             });
         }
 
+        function setupStructure() {
+            const forecastHost = document.getElementById('forecastHost');
+            ['denis','dima','ilya','comparison'].forEach((id, index) => { const pane=document.getElementById(id); pane.classList.remove('tab-content'); pane.classList.add('forecast-pane'); pane.hidden=index!==0; forecastHost.append(pane); });
+            document.getElementById('analysisAthleticsLeague').append(document.getElementById('athleticsAnalysis'));
+            document.querySelectorAll('[data-forecast]').forEach(button => button.addEventListener('click', () => { document.querySelectorAll('[data-forecast]').forEach(b=>b.classList.toggle('active',b===button)); document.querySelectorAll('.forecast-pane').forEach(p=>p.hidden=p.id!==button.dataset.forecast); }));
+            document.querySelectorAll('[data-league]').forEach(button => button.addEventListener('click', () => { const athletics=button.dataset.league==='athletics'; document.querySelectorAll('[data-league]').forEach(b=>b.classList.toggle('active',b===button)); document.getElementById('fplThreeLeague').hidden=athletics; document.getElementById('fplAthleticsLeague').hidden=!athletics; }));
+            document.querySelectorAll('[data-analysis-league]').forEach(button => button.addEventListener('click', () => { const athletics=button.dataset.analysisLeague==='athletics'; document.querySelectorAll('[data-analysis-league]').forEach(b=>b.classList.toggle('active',b===button)); document.getElementById('analysisThreeLeague').hidden=athletics; document.getElementById('analysisAthleticsLeague').hidden=!athletics; }));
+        }
+
         document.addEventListener('DOMContentLoaded', async function() {
             setupTabs();
+            setupStructure();
             if (USE_SAVED_DATA) document.getElementById('loadFplBtn').previousElementSibling.textContent = 'Проверка обновлений каждую минуту. Данные Sports.ru собираются GitHub Actions примерно раз в 5 минут; возможны задержки. Дата данных указана на карточках.';
             renderPredictions();
             renderTeams();
