@@ -44,7 +44,7 @@ def main():
     stamp = datetime.now(timezone.utc).isoformat()
     pending = {'fantasy.json': payload}
     fields = '''tour { id name status } players { isCaptain isViceCaptain isStarting substitutePriority
-        tourScore { score } seasonPlayer { id name role team { name } } }'''
+        seasonPlayer { id name role team { name svgKit { url } } } }'''
     for tour in season['tours']:
         if tour['status'] == 'NOT_STARTED':
             continue
