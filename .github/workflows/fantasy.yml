@@ -1,0 +1,39 @@
+name: Refresh Fantasy and deploy Pages
+on:
+  schedule:
+    - cron: '2-57/5 * * * *'
+  workflow_dispatch:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Fetch public results and squads
+        run: python scripts/update_fantasy.py
+      - uses: actions/configure-pages@v5
+      - name: Prepare site
+        run: |
+          mkdir _site
+          cp index.html _site/
+          cp -r data _site/
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: _site
+      - uses: actions/deploy-pages@v4
+        id: deployment
