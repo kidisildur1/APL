@@ -107,7 +107,16 @@
             .logo-text h1 { font-size: 1rem; }
             .header-actions { width: 100%; justify-content: space-between; }
         }
-    </style>
+
+        .squad-toolbar {display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-bottom:16px}
+        .squad-toolbar select {background:#252530;color:white;border:1px solid var(--border);border-radius:8px;padding:10px;font:inherit;max-width:100%}
+        .squad-group {display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin:12px 0 24px}
+        .squad-player {background:var(--bg-glass);border:1px solid var(--border);border-radius:10px;padding:12px}
+        .squad-player small {display:block;color:var(--text-secondary)}
+        .squad-player strong {display:block;margin:5px 0}
+        .squad-points {color:var(--secondary);font-weight:700}
+        .squad-open {margin-top:14px;background:transparent;border:1px solid var(--secondary);border-radius:8px;color:var(--secondary);padding:9px 15px;cursor:pointer}
+        </style>
 </head>
 <body>
     <div class="bg-mesh"></div>
@@ -165,9 +174,9 @@
         <div id="fpl" class="tab-content">
             <h2 class="section-title">🎮 Fantasy Sports.ru</h2>
             <div class="table-wrapper">
-                <div class="table-header"><h2>🔄 Автозагрузка из лиги 598822</h2></div>
+                <div class="table-header"><h2>🔄 Лига «Три товарища» — Fantasy АПЛ</h2></div>
                 <div style="padding: 1.2rem;">
-                    <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem;">Пробуем REST API endpoints через Cloudflare Worker</p>
+                    <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem;">Автообновление каждую минуту, пока страница открыта. При возвращении на вкладку данные обновятся сразу.</p>
                     <button class="btn-primary" id="loadFplBtn" onclick="loadFPLData()">🔄 Загрузить данные Fantasy</button>
                 </div>
                 <div class="status-log" id="statusLog"></div>
@@ -176,6 +185,16 @@
                 <div class="table-header"><h2> Общий зачёт Fantasy</h2></div>
                 <div class="fpl-leaderboard" id="fplLeaderboard"></div>
             </div>
+            <section class="user-section" id="squadPanel" hidden aria-label="Состав Fantasy">
+                <h2 class="section-title">Состав команды</h2>
+                <div class="squad-toolbar">
+                    <label>Команда <select id="squadUser" onchange="loadSquad()"><option value="denis">Денис</option><option value="dima">Дима</option><option value="ilya">Илья</option></select></label>
+                    <label>Тур <select id="squadTour" onchange="loadSquad()"><option value="current">Текущий тур</option></select></label>
+                    <a id="squadSource" target="_blank" rel="noopener noreferrer" style="color:var(--secondary)">На Sports.ru ↗</a>
+                </div>
+                <p id="squadStatus" role="status" aria-live="polite"></p>
+                <div id="squadPlayers"></div>
+            </section>
         </div>
 
         <div id="denis" class="tab-content">
@@ -266,8 +285,9 @@
             'Ковентри Сити': 'https://resources.premierleague.com/premierleague/badges/t91.svg'
         };
 
-        const fplIds = { denis: '44945', dima: '611237', ilya: '611230', league: '598822' };
-        const WORKER_URL = 'https://sports-proxy.kidisildur1.workers.dev';
+        const fplIds = { denis: '598822', dima: '611237', ilya: '611230', league: '44945' };
+        const GRAPHQL_URL = 'https://www.sports.ru/gql/graphql/';
+        const USE_SAVED_DATA = location.hostname.endsWith('.github.io');
         let currentTable = [];
         let fplData = { denis: null, dima: null, ilya: null };
 
@@ -289,163 +309,188 @@
             log.scrollTop = log.scrollHeight;
         }
 
-        async function proxyFetch(targetUrl) {
-            const response = await fetch(`${WORKER_URL}?url=${encodeURIComponent(targetUrl)}`, {
-                headers: { 'Accept': 'text/html,application/json' }
-            });
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
-            return await response.text();
+        function escapeHTML(value) {
+            return String(value).replace(/[&<>"']/g, char => ({'&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'}[char]));
         }
 
-        function extractFromObject(obj, depth = 0) {
-            if (depth > 5 || !obj || typeof obj !== 'object') return { points: 0, name: null, rank: 0 };
-            
-            let result = { points: 0, name: null, rank: 0 };
-            
-            if (obj.totalPoints !== undefined) result.points = Number(obj.totalPoints);
-            if (obj.total_points !== undefined) result.points = Number(obj.total_points);
-            if (obj.points !== undefined && obj.points > result.points) result.points = Number(obj.points);
-            if (obj.score !== undefined && obj.score > result.points) result.points = Number(obj.score);
-            
-            if (obj.teamName) result.name = obj.teamName;
-            if (obj.team_name) result.name = obj.team_name;
-            if (obj.name && (!result.name || obj.name.length > 3)) result.name = obj.name;
-            
-            if (obj.rank !== undefined) result.rank = Number(obj.rank);
-            if (obj.position !== undefined) result.rank = Number(obj.position);
-            
-            for (const key of Object.keys(obj)) {
-                const child = extractFromObject(obj[key], depth + 1);
-                if (child.points > result.points) result.points = child.points;
-                if (child.name && (!result.name || child.name.length > 3)) result.name = child.name;
-                if (child.rank > result.rank) result.rank = child.rank;
-            }
-            
-            return result;
-        }
-
-        async function loadFPLData() {
+        async function loadFPLData(silent = false) {
             const btn = document.getElementById('loadFplBtn');
+            if (btn.disabled) return;
             btn.disabled = true;
             btn.textContent = '⏳ Загрузка...';
-            document.getElementById('statusLog').innerHTML = '';
-            logStatus('🚀 Пробуем REST API endpoints...', 'info');
-            
-            const users = ['denis', 'dima', 'ilya'];
-            let successCount = 0;
-
-            for (const user of users) {
-                const teamId = fplIds[user];
-                
-                logStatus(`\n🔍 Ищем данные для ${user} (ID: ${teamId})`, 'info');
-                
-                const endpoints = [
-                    `https://www.sports.ru/fantasy/api/football/teams/${teamId}/`,
-                    `https://www.sports.ru/fantasy/api/football/team/${teamId}/`,
-                    `https://www.sports.ru/fantasy/api/football/leagues/${fplIds.league}/teams/`,
-                    `https://www.sports.ru/fantasy/api/football/leagues/${fplIds.league}/standings/`
-                ];
-                
-                let found = false;
-                
-                for (const endpoint of endpoints) {
-                    logStatus(`  → Пробуем: ${endpoint}`, 'info');
-                    
-                    try {
-                        const response = await proxyFetch(endpoint);
-                        logStatus(`    ✅ Получено! Размер: ${response.length}`, 'success');
-                        
-                        try {
-                            const data = JSON.parse(response);
-                            logStatus(`    📊 JSON распарсен!`, 'info', data);
-                            
-                            let teamData = null;
-                            
-                            if (data.id === parseInt(teamId) || data.team_id === parseInt(teamId)) {
-                                teamData = data;
-                            } else if (data.teams && Array.isArray(data.teams)) {
-                                teamData = data.teams.find(t => t.id === parseInt(teamId) || t.team_id === parseInt(teamId));
-                            } else if (data.standings && Array.isArray(data.standings)) {
-                                teamData = data.standings.find(t => t.team_id === parseInt(teamId));
-                            } else if (data.data && data.data.teams) {
-                                teamData = data.data.teams.find(t => t.id === parseInt(teamId));
-                            }
-                            
-                            if (teamData) {
-                                const extracted = extractFromObject(teamData);
-                                logStatus(`    ✅ Найдены данные команды!`, 'success', extracted);
-                                
-                                fplData[user] = {
-                                    name: extracted.name || `Команда ${user}`,
-                                    totalPoints: extracted.points || 0,
-                                    currentEvent: 1,
-                                    eventPoints: extracted.points || 0,
-                                    rank: extracted.rank || 0
-                                };
-                                
-                                logStatus(`    ✅ ${fplData[user].name}: ${fplData[user].totalPoints} очков`, 'success');
-                                found = true;
-                                successCount++;
-                                break;
-                            } else {
-                                logStatus(`    ⚠️ Команда не найдена в ответе`, 'error');
-                            }
-                        } catch(e) {
-                            logStatus(`    ❌ Не JSON: ${e.message}`, 'error');
-                        }
-                    } catch (error) {
-                        logStatus(`    ❌ Ошибка: ${error.message}`, 'error');
+            document.getElementById('statusLog').textContent = '';
+            try {
+                if (location.protocol === 'file:') {
+                    throw new Error('Откройте сайт через start.bat: Sports.ru не разрешает запросы со страниц file://.');
+                }
+                const users = ['denis', 'dima', 'ilya'];
+                const query = `{ fantasyQueries {
+                    tournament(id: "england", source: HRU) { currentSeason { id currentTour { id } tours { id name status } } }
+                    ${users.map(user => `${user}: squads(input: {squadID: ${JSON.stringify(fplIds[user])}}) {
+                        id name score averageScore
+                        seasonScoreInfo(leagueID: ${JSON.stringify(fplIds.league)}) { place score scoreForLastTour }
+                        season { id tournament { webName } }
+                        currentTourInfo { tour { name } scoreInfo { score } }
+                    }`).join('\n')}
+                } }`;
+                const url = new URL(GRAPHQL_URL);
+                url.searchParams.set('query', query);
+                logStatus('Загрузка результатов Sports.ru...', 'info');
+                const response = await fetch(USE_SAVED_DATA ? './data/fantasy.json' : url, {cache: 'no-store', credentials: 'omit', signal: AbortSignal.timeout(20000)});
+                if (!response.ok) throw new Error(`Sports.ru: HTTP ${response.status}`);
+                const payload = await response.json();
+                const data = payload.data?.fantasyQueries;
+                const sourceDate = USE_SAVED_DATA ? new Date(payload.updatedAt) : new Date();
+                if (!Number.isFinite(sourceDate.getTime())) throw new Error('Неизвестна дата обновления данных.');
+                const sourceStale = Date.now() - sourceDate.getTime() > 20 * 60 * 1000;
+                if (!data?.tournament?.currentSeason?.id) {
+                    throw new Error(payload.errors?.map(e => e.message).join('; ') || 'Не удалось определить текущий сезон АПЛ.');
+                }
+                fantasySeason = data.tournament.currentSeason;
+                updateTourOptions();
+                const errors = payload.errors || [];
+                errors.forEach(error => logStatus(error.message, 'error'));
+                let count = 0;
+                const next = {};
+                for (const user of users) {
+                    const team = data[user]?.find(t => String(t.id) === fplIds[user]);
+                    if (errors.some(error => !error.path || error.path[1] === user)) {
+                        next[user] = {error: 'Источник вернул ошибку для команды'};
+                    } else if (!team) {
+                        next[user] = {error: `Команда ${fplIds[user]} не найдена`};
+                    } else if (team.season?.tournament?.webName !== 'england' || team.season.id !== data.tournament.currentSeason.id) {
+                        next[user] = {error: `ID ${team.id}: «${team.name}» — другой турнир или сезон. Укажите ID команды текущей АПЛ.`};
+                    } else if (!Number.isFinite(team.seasonScoreInfo?.score)) {
+                        next[user] = {error: 'Источник не вернул результаты команды в лиге «Три товарища»'};
+                    } else {
+                        next[user] = {name: team.name, totalPoints: team.seasonScoreInfo.score, rank: team.seasonScoreInfo.place,
+                            average: team.averageScore, tourName: team.currentTourInfo?.tour?.name,
+                            eventPoints: team.seasonScoreInfo.scoreForLastTour,
+                            stale: sourceStale, updatedAt: sourceDate.toLocaleString()};
+                        count++;
                     }
+                    logStatus(next[user].error || `${next[user].name}: ${next[user].totalPoints} очков`, next[user].error ? 'error' : 'success');
                 }
-                
-                if (!found) {
-                    logStatus(`  ❌ Не удалось найти данные для ${user}`, 'error');
-                }
-            }
-
-            if (successCount > 0) {
+                fplData = next;
                 renderFPLLeaderboard();
-                logStatus(`\n Итого загружено: ${successCount} из 3 команд`, 'success');
-                showNotification(`Загружено: ${successCount}/3 команд`, 'success');
-            } else {
-                logStatus(`\n❌ Все попытки неудачны. Пришлите скриншот лога.`, 'error');
-                showNotification('Не удалось загрузить данные', 'error');
+                if (!silent) showNotification(`Загружено ${count}/3 команд`, count === 3 ? 'success' : 'error');
+            } catch (error) {
+                const message = error.name === 'TimeoutError' ? 'Sports.ru не ответил за 20 секунд.' : error.message;
+                logStatus(message, 'error');
+                Object.values(fplData).forEach(team => { if (team) team.stale = true; });
+                renderFPLLeaderboard();
+                if (!silent) showNotification('Не удалось обновить Fantasy. Подробности в журнале.', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '🔄 Загрузить данные Fantasy';
             }
-
-            btn.disabled = false;
-            btn.textContent = '🔄 Загрузить данные Fantasy';
         }
 
         function renderFPLLeaderboard() {
-            const totals = {
-                denis: { name: 'Денис', total: 0, gws: 0, max: 0, color: '#667eea' },
-                dima: { name: 'Дима', total: 0, gws: 0, max: 0, color: '#f093fb' },
-                ilya: { name: 'Илья', total: 0, gws: 0, max: 0, color: '#4facfe' }
-            };
+            const users = [
+                {key: 'denis', name: 'Денис', color: '#667eea'},
+                {key: 'dima', name: 'Дима', color: '#f093fb'},
+                {key: 'ilya', name: 'Илья', color: '#4facfe'}
+            ];
+            users.sort((a,b) => (fplData[b.key]?.totalPoints ?? -Infinity) - (fplData[a.key]?.totalPoints ?? -Infinity));
+            document.getElementById('fplLeaderboard').innerHTML = users.map(user => {
+                const p = fplData[user.key];
+                const loaded = Number.isFinite(p?.totalPoints);
+                const rank = loaded ? p.rank : null;
+                return `<div class="fpl-card" style="border-top: 4px solid ${user.color}">
+                    <div class="fpl-rank">${rank ? '#' + rank : '—'}</div>
+                    <div class="fpl-name">${user.name}</div>
+                    <div>${escapeHTML(p?.name || '')}</div>
+                    <div style="font-size:2.5rem;font-weight:800">${loaded ? p.totalPoints : '—'}</div>
+                    <div>${loaded ? 'очков' : escapeHTML(p?.error || 'Данные ещё не загружены')}</div>
+                    ${loaded ? `<div class="fpl-stats-row">
+                        <div><div>${escapeHTML(p.tourName || '—')}</div><div class="fpl-stat-lbl">текущий тур</div></div>
+                        <div><div>${Number.isFinite(p.average) ? p.average : '—'}</div><div class="fpl-stat-lbl">среднее Sports.ru</div></div>
+                        <div><div>${Number.isFinite(p.eventPoints) ? p.eventPoints : '—'}</div><div class="fpl-stat-lbl">последний тур</div></div>
+                    </div><div class="fpl-stat-lbl">${p.stale ? 'Данные устарели. Последние данные: ' : 'Обновлено: '}${escapeHTML(p.updatedAt)}</div>` : ''}
+                    <button class="squad-open" onclick="openSquad('${user.key}')">Посмотреть состав</button>
+                </div>`;
+            }).join('');
+        }
 
-            ['denis', 'dima', 'ilya'].forEach(user => {
-                if (fplData[user]) {
-                    totals[user].name = fplData[user].name;
-                    totals[user].total = fplData[user].totalPoints;
-                    totals[user].gws = fplData[user].currentEvent || 1;
-                    totals[user].max = fplData[user].eventPoints;
-                }
-            });
+        let fantasySeason = null;
+        let squadRequest = 0;
+        let squadAbort = null;
+        let refreshingFantasy = false;
 
-            const sorted = Object.values(totals).sort((a, b) => b.total - a.total);
-            document.getElementById('fplLeaderboard').innerHTML = sorted.map((p, idx) => `
-                <div class="fpl-card" style="border-top: 4px solid ${p.color}">
-                    <div class="fpl-rank">#${idx + 1}</div>
-                    <div class="fpl-name">${p.name}</div>
-                    <div style="font-size: 2.5rem; font-weight: 800;">${p.total}</div>
-                    <div style="color: var(--text-secondary); margin-bottom: 1rem;">очков</div>
-                    <div class="fpl-stats-row">
-                        <div class="fpl-stat-item"><div class="fpl-stat-val">${p.gws}</div><div class="fpl-stat-lbl">туров</div></div>
-                        <div class="fpl-stat-item"><div class="fpl-stat-val">${p.gws > 0 ? (p.total / p.gws).toFixed(1) : 0}</div><div class="fpl-stat-lbl">среднее</div></div>
-                        <div class="fpl-stat-item"><div class="fpl-stat-val">${p.max}</div><div class="fpl-stat-lbl">макс.</div></div>
-                    </div>
-                </div>
-            `).join('');
+        function updateTourOptions() {
+            const select = document.getElementById('squadTour');
+            const previous = select.value;
+            select.innerHTML = '<option value="current">Текущий тур</option>' + (fantasySeason?.tours || [])
+                .filter(t => t.status !== 'NOT_STARTED')
+                .map(t => `<option value="${escapeHTML(t.id)}">${escapeHTML(t.name)}</option>`).join('');
+            select.value = [...select.options].some(o => o.value === previous) ? previous : 'current';
+        }
+
+        function openSquad(user) {
+            document.getElementById('squadPanel').hidden = false;
+            document.getElementById('squadUser').value = user;
+            document.getElementById('squadPanel').scrollIntoView({behavior: 'smooth', block: 'start'});
+            loadSquad();
+        }
+
+        async function loadSquad() {
+            const version = ++squadRequest;
+            squadAbort?.abort();
+            squadAbort = new AbortController();
+            const controller = squadAbort;
+            const timeout = setTimeout(() => controller.abort(), 20000);
+            const status = document.getElementById('squadStatus');
+            const host = document.getElementById('squadPlayers');
+            const user = document.getElementById('squadUser').value;
+            const selectedTour = document.getElementById('squadTour').value;
+            const tourID = selectedTour === 'current' ? fantasySeason?.currentTour?.id : selectedTour;
+            host.textContent = '';
+            status.textContent = 'Загрузка состава…';
+            document.getElementById('squadSource').href = `https://www.sports.ru/fantasy/football/england/${fplIds[user]}/`;
+            try {
+                if (!tourID) throw new Error('Сначала загрузите результаты Fantasy, затем откройте состав.');
+                const query = `{ fantasyQueries { squadTourInfo(input: {squadID: ${JSON.stringify(fplIds[user])}, tourID: ${JSON.stringify(tourID)}}) {
+                    tour { id name status }
+                    players { isCaptain isViceCaptain isStarting substitutePriority tourScore { score }
+                        seasonPlayer { id name role team { name } }
+                    }
+                } } }`;
+                const url = new URL(GRAPHQL_URL);
+                url.searchParams.set('query', query);
+                const response = await fetch(USE_SAVED_DATA ? `./data/squads/${fplIds[user]}-${tourID}.json` : url, {cache: 'no-store', credentials: 'omit', signal: controller.signal});
+                if (!response.ok) throw new Error(`Sports.ru: HTTP ${response.status}`);
+                const payload = await response.json();
+                if (payload.errors?.length) throw new Error(payload.errors.map(e => e.message).join('; '));
+                const info = payload.data?.fantasyQueries?.squadTourInfo;
+                if (!info?.players?.length) throw new Error('Состав этого тура пока недоступен на Sports.ru.');
+                if (version !== squadRequest) return;
+                const roles = {GOALKEEPER:'Вратарь', DEFENDER:'Защитник', MIDFIELDER:'Полузащитник', FORWARD:'Нападающий'};
+                const order = Object.keys(roles);
+                const playerHTML = p => `<div class="squad-player">
+                    <small>${escapeHTML(roles[p.seasonPlayer.role] || p.seasonPlayer.role)} · ${escapeHTML(p.seasonPlayer.team?.name || '—')}</small>
+                    <strong>${escapeHTML(p.seasonPlayer.name)} ${p.isCaptain ? 'Ⓒ' : p.isViceCaptain ? 'Ⓥ' : ''}</strong>
+                    <span class="squad-points">${Number.isFinite(p.tourScore?.score) ? p.tourScore.score : '—'} очк.</span>
+                </div>`;
+                const starters = info.players.filter(p => p.isStarting).sort((a,b) => order.indexOf(a.seasonPlayer.role) - order.indexOf(b.seasonPlayer.role));
+                const bench = info.players.filter(p => !p.isStarting).sort((a,b) => (a.substitutePriority ?? 99) - (b.substitutePriority ?? 99));
+                host.innerHTML = `<h3>Основной состав · ${starters.length}</h3><div class="squad-group">${starters.map(playerHTML).join('')}</div>
+                    <h3>Запасные · ${bench.length}</h3><div class="squad-group">${bench.map(playerHTML).join('')}</div>`;
+                const sourceDate = USE_SAVED_DATA ? new Date(payload.updatedAt) : new Date();
+                const staleText = Date.now() - sourceDate.getTime() > 20 * 60 * 1000 ? ' · Данные устарели' : '';
+                status.textContent = `${info.tour.name} · Обновлено ${sourceDate.toLocaleString()}${staleText} · Ⓒ капитан, Ⓥ вице-капитан. Очки выбранного тура по Sports.ru.`;
+            } catch (error) {
+                if (version === squadRequest) status.textContent = error.name === 'AbortError' ? 'Sports.ru не ответил вовремя. Повторите выбор команды или тура.' : error.message;
+            } finally { clearTimeout(timeout); }
+        }
+
+        async function refreshFantasy() {
+            if (refreshingFantasy || document.hidden || !navigator.onLine) return;
+            refreshingFantasy = true;
+            try {
+                await loadFPLData(true);
+                if (!document.getElementById('squadPanel').hidden) await loadSquad();
+            } finally { refreshingFantasy = false; }
         }
 
         async function fetchTableFromAPI() {
@@ -584,10 +629,14 @@
 
         document.addEventListener('DOMContentLoaded', async function() {
             setupTabs();
+            if (USE_SAVED_DATA) document.getElementById('loadFplBtn').previousElementSibling.textContent = 'Проверка обновлений каждую минуту. Данные Sports.ru собираются GitHub Actions примерно раз в 5 минут; возможны задержки. Дата данных указана на карточках.';
             renderPredictions();
             renderTeams();
             renderFPLLeaderboard();
-            await updateAllData();
+            await Promise.allSettled([updateAllData(), loadFPLData()]);
+            setInterval(refreshFantasy, 60000);
+            document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshFantasy(); });
+            window.addEventListener('online', refreshFantasy);
         });
     </script>
 </body>
