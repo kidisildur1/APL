@@ -110,11 +110,27 @@
 
         .squad-toolbar {display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-bottom:16px}
         .squad-toolbar select {background:#252530;color:white;border:1px solid var(--border);border-radius:8px;padding:10px;font:inherit;max-width:100%}
-        .squad-group {display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin:12px 0 24px}
-        .squad-player {background:var(--bg-glass);border:1px solid var(--border);border-radius:10px;padding:12px}
-        .squad-player small {display:block;color:var(--text-secondary)}
-        .squad-player strong {display:block;margin:5px 0}
-        .squad-points {color:var(--secondary);font-weight:700}
+        .fantasy-pitch {position:relative;max-width:740px;margin:20px auto 0;padding:22px 12px;background:repeating-linear-gradient(0deg,#007823 0px,#007823 90px,#007020 90px,#007020 180px);border:4px solid #008c32;border-radius:24px 24px 6px 6px;overflow:hidden}
+        .pitch-lines {position:absolute;inset:10px;border:2px solid #13bd49;border-radius:14px;pointer-events:none}
+        .pitch-lines:before {content:'';position:absolute;left:0;right:0;top:50%;border-top:2px solid #13bd49}
+        .pitch-lines:after {content:'';position:absolute;width:30%;aspect-ratio:1;left:35%;top:50%;transform:translateY(-50%);border:2px solid #13bd49;border-radius:50%}
+        .pitch-box {position:absolute;left:32%;width:36%;height:65px;border:2px solid #13bd49;top:0;border-top:0;border-radius:0 0 5px 5px}
+        .pitch-box.bottom {top:auto;bottom:0;border-top:2px solid #13bd49;border-bottom:0;transform:rotate(180deg)}
+        .pitch-row {position:relative;display:flex;justify-content:center;gap:clamp(2px,2vw,24px);min-height:132px;align-items:center;z-index:1}
+        .pitch-player {text-align:center;flex:0 1 120px;min-width:0;color:white;font-size:13px;line-height:1.25}
+        .kit-wrap {width:62px;height:64px;position:relative;margin:0 auto 6px}
+        .kit-wrap img {width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 3px 2px #0005)}
+        .kit-placeholder[hidden] {display:none}
+        .kit-placeholder {display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-size:38px}
+        .captain-marker {position:absolute;right:-2px;bottom:0;width:23px;height:23px;border-radius:50%;background:#ffda00;color:#111;font-weight:800;border:2px solid white;line-height:19px}
+        .captain-marker.vice {background:#16aae3;color:white}
+        .pitch-player strong {display:block;font-weight:500;overflow-wrap:anywhere;text-shadow:0 1px 3px #00360f}
+        .pitch-player small {display:block;margin-top:3px;color:#d3e8d9;font-size:10px}
+        .pitch-bench {max-width:740px;margin:0 auto;background:#414141;padding:18px 12px;border-radius:0 0 14px 14px}
+        .pitch-bench h3 {color:#dedede;font-size:13px;font-weight:500;margin-bottom:14px}
+        .pitch-bench .pitch-row {min-height:110px;justify-content:space-around}
+        .pitch-caption {max-width:740px;margin:14px auto;color:var(--text-secondary);font-size:13px}
+        @media(max-width:480px) {.pitch-row {min-height:112px;gap:3px}.kit-wrap {width:43px;height:47px}.pitch-player {font-size:11px}.pitch-player small{font-size:9px}.fantasy-pitch{padding:18px 4px}.captain-marker{width:19px;height:19px;line-height:15px;font-size:10px}}
         .squad-open {margin-top:14px;background:transparent;border:1px solid var(--secondary);border-radius:8px;color:var(--secondary);padding:9px 15px;cursor:pointer}
         </style>
 </head>
@@ -189,7 +205,7 @@
                 <h2 class="section-title">Состав команды</h2>
                 <div class="squad-toolbar">
                     <label>Команда <select id="squadUser" onchange="loadSquad()"><option value="denis">Денис</option><option value="dima">Дима</option><option value="ilya">Илья</option></select></label>
-                    <label>Тур <select id="squadTour" onchange="loadSquad()"><option value="current">Текущий тур</option></select></label>
+                    <label>Тур <select id="squadTour" onchange="loadSquad()"><option value="latest">Последний завершённый тур</option><option value="current">Текущий тур</option></select></label>
                     <a id="squadSource" target="_blank" rel="noopener noreferrer" style="color:var(--secondary)">На Sports.ru ↗</a>
                 </div>
                 <p id="squadStatus" role="status" aria-live="polite"></p>
@@ -421,10 +437,10 @@
         function updateTourOptions() {
             const select = document.getElementById('squadTour');
             const previous = select.value;
-            select.innerHTML = '<option value="current">Текущий тур</option>' + (fantasySeason?.tours || [])
+            select.innerHTML = '<option value="latest">Последний завершённый тур</option><option value="current">Текущий тур</option>' + (fantasySeason?.tours || [])
                 .filter(t => t.status !== 'NOT_STARTED')
                 .map(t => `<option value="${escapeHTML(t.id)}">${escapeHTML(t.name)}</option>`).join('');
-            select.value = [...select.options].some(o => o.value === previous) ? previous : 'current';
+            select.value = [...select.options].some(o => o.value === previous) ? previous : 'latest';
         }
 
         function openSquad(user) {
@@ -444,7 +460,8 @@
             const host = document.getElementById('squadPlayers');
             const user = document.getElementById('squadUser').value;
             const selectedTour = document.getElementById('squadTour').value;
-            const tourID = selectedTour === 'current' ? fantasySeason?.currentTour?.id : selectedTour;
+            const finishedTours = (fantasySeason?.tours || []).filter(t => t.status === 'FINISHED');
+            const tourID = selectedTour === 'latest' ? finishedTours.at(-1)?.id : selectedTour === 'current' ? fantasySeason?.currentTour?.id : selectedTour;
             host.textContent = '';
             status.textContent = 'Загрузка состава…';
             document.getElementById('squadSource').href = `https://www.sports.ru/fantasy/football/england/${fplIds[user]}/`;
@@ -452,8 +469,8 @@
                 if (!tourID) throw new Error('Сначала загрузите результаты Fantasy, затем откройте состав.');
                 const query = `{ fantasyQueries { squadTourInfo(input: {squadID: ${JSON.stringify(fplIds[user])}, tourID: ${JSON.stringify(tourID)}}) {
                     tour { id name status }
-                    players { isCaptain isViceCaptain isStarting substitutePriority tourScore { score }
-                        seasonPlayer { id name role team { name } }
+                    players { isCaptain isViceCaptain isStarting substitutePriority
+                        seasonPlayer { id name role team { name svgKit { url } } }
                     }
                 } } }`;
                 const url = new URL(GRAPHQL_URL);
@@ -467,18 +484,28 @@
                 if (version !== squadRequest) return;
                 const roles = {GOALKEEPER:'Вратарь', DEFENDER:'Защитник', MIDFIELDER:'Полузащитник', FORWARD:'Нападающий'};
                 const order = Object.keys(roles);
-                const playerHTML = p => `<div class="squad-player">
-                    <small>${escapeHTML(roles[p.seasonPlayer.role] || p.seasonPlayer.role)} · ${escapeHTML(p.seasonPlayer.team?.name || '—')}</small>
-                    <strong>${escapeHTML(p.seasonPlayer.name)} ${p.isCaptain ? 'Ⓒ' : p.isViceCaptain ? 'Ⓥ' : ''}</strong>
-                    <span class="squad-points">${Number.isFinite(p.tourScore?.score) ? p.tourScore.score : '—'} очк.</span>
-                </div>`;
-                const starters = info.players.filter(p => p.isStarting).sort((a,b) => order.indexOf(a.seasonPlayer.role) - order.indexOf(b.seasonPlayer.role));
+                const playerHTML = p => {
+                    const kit = p.seasonPlayer.team?.svgKit?.url;
+                    let kitURL = '';
+                    try { const url = new URL(kit); if (url.protocol === 'https:') kitURL = url.href; } catch {}
+                    return `<div class="pitch-player" title="${escapeHTML(p.seasonPlayer.name)} — ${escapeHTML(p.seasonPlayer.team?.name || '')}">
+                        <div class="kit-wrap">${kitURL ? `<img src="${escapeHTML(kitURL)}" alt="Форма ${escapeHTML(p.seasonPlayer.team?.name || '')}" loading="lazy" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><span class="kit-placeholder" hidden>👕</span>` : '<span class="kit-placeholder">👕</span>'}
+                        ${p.isCaptain ? '<span class="captain-marker" aria-label="Капитан">C</span>' : p.isViceCaptain ? '<span class="captain-marker vice" aria-label="Вице-капитан">V</span>' : ''}</div>
+                        <strong>${escapeHTML(p.seasonPlayer.name)}</strong>
+                        <small>${escapeHTML(p.seasonPlayer.team?.name || '')}</small>
+                    </div>`;
+                };
+                const starters = info.players.filter(p => p.isStarting);
                 const bench = info.players.filter(p => !p.isStarting).sort((a,b) => (a.substitutePriority ?? 99) - (b.substitutePriority ?? 99));
-                host.innerHTML = `<h3>Основной состав · ${starters.length}</h3><div class="squad-group">${starters.map(playerHTML).join('')}</div>
-                    <h3>Запасные · ${bench.length}</h3><div class="squad-group">${bench.map(playerHTML).join('')}</div>`;
+                const formation = order.slice(1).map(role => starters.filter(p => p.seasonPlayer.role === role).length).join('–');
+                host.innerHTML = `<div class="pitch-caption">${escapeHTML(info.tour.name)} · Расстановка ${formation} · C — капитан, V — вице-капитан</div>
+                    <div class="fantasy-pitch" aria-label="Расстановка на поле">
+                    <div class="pitch-lines"><div class="pitch-box"></div><div class="pitch-box bottom"></div></div>
+                    ${order.map(role => `<div class="pitch-row" role="group" aria-label="${roles[role]}">${starters.filter(p => p.seasonPlayer.role === role).map(playerHTML).join('')}</div>`).join('')}
+                    </div><div class="pitch-bench"><h3>Запасные · порядок замен</h3><div class="pitch-row">${bench.map(playerHTML).join('')}</div></div>`;
                 const sourceDate = USE_SAVED_DATA ? new Date(payload.updatedAt) : new Date();
                 const staleText = Date.now() - sourceDate.getTime() > 20 * 60 * 1000 ? ' · Данные устарели' : '';
-                status.textContent = `${info.tour.name} · Обновлено ${sourceDate.toLocaleString()}${staleText} · Ⓒ капитан, Ⓥ вице-капитан. Очки выбранного тура по Sports.ru.`;
+                status.textContent = `${info.tour.name} · Обновлено ${sourceDate.toLocaleString()}${staleText} · Публичный состав Sports.ru.${info.tour.status === 'OPENED' ? ' Тур ещё не начался: изменения владельца могут не совпадать с публичными данными.' : ''}`;
             } catch (error) {
                 if (version === squadRequest) status.textContent = error.name === 'AbortError' ? 'Sports.ru не ответил вовремя. Повторите выбор команды или тура.' : error.message;
             } finally { clearTimeout(timeout); }
