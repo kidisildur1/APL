@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Прогноз АПЛ 2026/27 — Денис • Дима • Илья</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --primary: #37003c; --secondary: #00ff85; --bg-dark: #0a0a0f;
+            --bg-card: rgba(26, 26, 36, 0.85); --bg-glass: rgba(255, 255, 255, 0.03);
+            --text-primary: #ffffff; --text-secondary: #a0a0b0; --border: rgba(255, 255, 255, 0.08);
+            --gradient-pl: linear-gradient(135deg, #37003c 0%, #00ff85 100%);
+            --gradient-den: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --gradient-dim: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --gradient-ily: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --gradient-gold: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+            --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.5); --radius-lg: 16px;
+        }
+        body { font-family: 'Inter', sans-serif; background: var(--bg-dark); color: var(--text-primary); line-height: 1.6; min-height: 100vh; }
+        .bg-mesh { position: fixed; inset: 0; background: radial-gradient(at 20% 30%, rgba(55, 0, 60, 0.4) 0%, transparent 50%), radial-gradient(at 80% 70%, rgba(0, 255, 133, 0.2) 0%, transparent 50%); z-index: -2; }
+        .header { background: rgba(19, 19, 26, 0.95); backdrop-filter: blur(20px); border-bottom: 2px solid var(--secondary); position: sticky; top: 0; z-index: 100; }
+        .header-content { max-width: 1400px; margin: 0 auto; padding: 1rem; }
+        .header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; gap: 1rem; flex-wrap: wrap; }
+        .logo { display: flex; align-items: center; gap: 1rem; }
+        .logo-icon { width: 50px; height: 50px; background: var(--gradient-pl); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; }
+        .logo-text h1 { font-family: 'Space Grotesk', sans-serif; font-size: 1.3rem; font-weight: 700; background: linear-gradient(135deg, #fff 0%, #00ff85 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .logo-text p { color: var(--text-secondary); font-size: 0.8rem; }
+        .header-actions { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
+        .season-badge { background: var(--gradient-gold); padding: 0.5rem 1rem; border-radius: 20px; font-weight: 700; color: #1a1a24; font-size: 0.8rem; }
+        .update-btn { background: var(--gradient-pl); border: none; padding: 0.6rem 1rem; border-radius: 10px; color: white; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; }
+        .update-btn.loading .btn-icon { animation: spin 1s linear infinite; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .nav-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        .nav-wrapper::-webkit-scrollbar { display: none; }
+        .nav-tabs { display: flex; gap: 0.5rem; padding: 0.5rem; background: var(--bg-glass); border-radius: 12px; border: 1px solid var(--border); min-width: max-content; }
+        .nav-tab { padding: 0.7rem 1.2rem; border: none; background: transparent; color: var(--text-secondary); font-family: inherit; font-weight: 600; font-size: 0.85rem; border-radius: 8px; cursor: pointer; white-space: nowrap; }
+        .nav-tab.active { color: white; background: var(--gradient-pl); }
+        .container { max-width: 1400px; margin: 0 auto; padding: 1.5rem 1rem; }
+        .tab-content { display: none; animation: slideIn 0.4s; }
+        .tab-content.active { display: block; }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .section-title { font-family: 'Space Grotesk', sans-serif; font-size: 1.4rem; font-weight: 700; margin: 0 0 1.2rem 0; display: flex; align-items: center; gap: 0.8rem; }
+        .section-title::before { content: ''; width: 4px; height: 28px; background: var(--gradient-pl); border-radius: 2px; }
+        .table-wrapper { background: var(--bg-card); border-radius: var(--radius-lg); border: 1px solid var(--border); overflow: hidden; margin-bottom: 1.5rem; }
+        .table-header { background: var(--gradient-pl); padding: 1rem 1.2rem; }
+        .table-header h2 { font-family: 'Space Grotesk', sans-serif; font-size: 1.1rem; font-weight: 700; }
+        .table-container { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; min-width: 700px; }
+        table th { background: rgba(255, 255, 255, 0.03); padding: 0.9rem 0.8rem; text-align: left; font-weight: 700; font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; border-bottom: 1px solid var(--border); }
+        table td { padding: 0.7rem 0.8rem; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+        table tbody tr:hover { background: rgba(255, 255, 255, 0.03); }
+        .team-cell { display: flex; align-items: center; gap: 0.8rem; font-weight: 600; }
+        .team-badge { width: 24px; height: 24px; object-fit: contain; }
+        .pos-badge { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 8px; font-weight: 700; font-size: 0.85rem; }
+        .pos-ucl { background: rgba(0, 255, 133, 0.2); color: #00ff85; }
+        .pos-uel { background: rgba(255, 193, 7, 0.2); color: #ffc107; }
+        .pos-mid { background: rgba(255, 255, 255, 0.1); color: var(--text-secondary); }
+        .pos-rel { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+        .points-badge { background: var(--gradient-pl); padding: 0.35rem 0.7rem; border-radius: 6px; font-weight: 700; font-size: 0.95rem; }
+        
+        .fpl-leaderboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.2rem; padding: 1.2rem; }
+        .fpl-card { background: var(--bg-glass); border-radius: 12px; padding: 1.2rem; border: 1px solid var(--border); text-align: center; }
+        .fpl-rank { font-size: 2rem; font-weight: 800; background: linear-gradient(135deg, #00ff85, #00f2fe); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0.4rem; }
+        .fpl-name { font-size: 1.2rem; font-weight: 700; margin-bottom: 0.8rem; }
+        .fpl-stats-row { display: flex; justify-content: space-around; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); }
+        .fpl-stat-item { text-align: center; }
+        .fpl-stat-val { font-size: 1.2rem; font-weight: 700; }
+        .fpl-stat-lbl { font-size: 0.7rem; color: var(--text-secondary); }
+
+        .user-section { background: var(--bg-card); border-radius: var(--radius-lg); padding: 1.5rem; border: 1px solid var(--border); margin-bottom: 1.5rem; }
+        .user-header { display: flex; align-items: center; gap: 1.2rem; margin-bottom: 1.5rem; padding-bottom: 1.2rem; border-bottom: 1px solid var(--border); }
+        .user-avatar { width: 70px; height: 70px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: 700; color: white; }
+        .user-avatar.denis { background: var(--gradient-den); }
+        .user-avatar.dima { background: var(--gradient-dim); }
+        .user-avatar.ilya { background: var(--gradient-ily); }
+        .user-info h2 { font-family: 'Space Grotesk', sans-serif; font-size: 1.6rem; font-weight: 700; }
+        .user-stats { display: flex; gap: 0.6rem; margin-top: 0.6rem; flex-wrap: wrap; }
+        .stat-badge { background: var(--bg-glass); padding: 0.35rem 0.7rem; border-radius: 8px; border: 1px solid var(--border); font-size: 0.75rem; }
+
+        .notification { position: fixed; top: 80px; right: 10px; left: 10px; background: var(--bg-card); border: 1px solid var(--secondary); border-radius: 12px; padding: 1rem; z-index: 1000; transform: translateY(-200px); opacity: 0; transition: all 0.3s; text-align: center; }
+        .notification.show { transform: translateY(0); opacity: 1; }
+        .notification.error { border-color: #ef4444; }
+
+        .status-log { padding: 1rem; background: var(--bg-glass); border-radius: 8px; margin: 1rem 1.2rem; font-family: monospace; font-size: 0.8rem; max-height: 400px; overflow-y: auto; display: none; border: 1px solid var(--border); }
+        .status-log .log-item { margin-bottom: 0.3rem; word-break: break-all; }
+        .status-log .log-success { color: #00ff85; }
+        .status-log .log-error { color: #ef4444; }
+        .status-log .log-info { color: var(--text-secondary); }
+
+        .teams-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1rem; padding: 1.2rem; }
+
+        @media (max-width: 768px) {
+            .header-content { padding: 0.8rem; }
+            .logo-text h1 { font-size: 1.1rem; }
+            .fpl-leaderboard { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 480px) {
+            .header-top { flex-direction: column; align-items: flex-start; }
+            .logo { gap: 0.8rem; }
+            .logo-icon { width: 40px; height: 40px; font-size: 1.3rem; }
+            .logo-text h1 { font-size: 1rem; }
+            .header-actions { width: 100%; justify-content: space-between; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-mesh"></div>
+    <div class="notification" id="notification">
+        <span id="notificationIcon">✅</span>
+        <span id="notificationText">Успешно!</span>
+    </div>
+
+    <header class="header">
+        <div class="header-content">
+            <div class="header-top">
+                <div class="logo">
+                    <div class="logo-icon">⚽</div>
+                    <div class="logo-text">
+                        <h1>Прогноз АПЛ</h1>
+                        <p>Денис • Дима • Илья</p>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <div class="season-badge">🏆 2026/27</div>
+                    <button class="update-btn" id="updateBtn" onclick="updateAllData()">
+                        <span class="btn-icon">🔄</span>
+                        <span class="btn-text">Обновить</span>
+                    </button>
+                </div>
+            </div>
+            <div class="nav-wrapper">
+                <nav class="nav-tabs">
+                    <button class="nav-tab active" data-tab="current"> Таблица</button>
+                    <button class="nav-tab" data-tab="fpl">🎮 Fantasy</button>
+                    <button class="nav-tab" data-tab="denis">👤 Денис</button>
+                    <button class="nav-tab" data-tab="dima">👤 Дима</button>
+                    <button class="nav-tab" data-tab="ilya">👤 Илья</button>
+                    <button class="nav-tab" data-tab="comparison">📈 Сравнение</button>
+                    <button class="nav-tab" data-tab="teams">⚙️ Команды</button>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <div id="current" class="tab-content active">
+            <h2 class="section-title">📊 Текущая таблица АПЛ</h2>
+            <div class="table-wrapper">
+                <div class="table-header"><h2>🏴󠁢󠁧 Premier League</h2></div>
+                <div class="table-container">
+                    <table>
+                        <thead><tr><th>#</th><th>Команда</th><th>И</th><th>В</th><th>Н</th><th>П</th><th>МЗ</th><th>МП</th><th>РМ</th><th>Очки</th></tr></thead>
+                        <tbody id="currentTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="fpl" class="tab-content">
+            <h2 class="section-title">🎮 Fantasy Sports.ru</h2>
+            <div class="table-wrapper">
+                <div class="table-header"><h2>🔄 Автозагрузка из лиги 598822</h2></div>
+                <div style="padding: 1.2rem;">
+                    <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem;">Парсинг HTML-страниц команд (т.к. API не работает)</p>
+                    <button class="btn-primary" id="loadFplBtn" onclick="loadFPLData()">🔄 Загрузить данные Fantasy</button>
+                </div>
+                <div class="status-log" id="statusLog"></div>
+            </div>
+            <div class="table-wrapper">
+                <div class="table-header"><h2> Общий зачёт Fantasy</h2></div>
+                <div class="fpl-leaderboard" id="fplLeaderboard"></div>
+            </div>
+        </div>
+
+        <div id="denis" class="tab-content">
+            <div class="user-section">
+                <div class="user-header">
+                    <div class="user-avatar denis">Д</div>
+                    <div class="user-info">
+                        <h2>Денис</h2>
+                        <div class="user-stats"><span class="stat-badge">✓ 20/20</span><span class="stat-badge">📅 14.09.2026</span></div>
+                    </div>
+                </div>
+                <div class="table-wrapper"><div class="table-container"><table style="min-width: auto;"><thead><tr><th style="width: 60px;">Место</th><th>Команда</th></tr></thead><tbody id="denisTableBody"></tbody></table></div></div>
+            </div>
+        </div>
+
+        <div id="dima" class="tab-content">
+            <div class="user-section">
+                <div class="user-header">
+                    <div class="user-avatar dima">Д</div>
+                    <div class="user-info">
+                        <h2>Дима</h2>
+                        <div class="user-stats"><span class="stat-badge">✓ 7/20</span><span class="stat-badge"> 14.09.2026</span></div>
+                    </div>
+                </div>
+                <div class="table-wrapper"><div class="table-container"><table style="min-width: auto;"><thead><tr><th style="width: 60px;">Место</th><th>Команда</th></tr></thead><tbody id="dimaTableBody"></tbody></table></div></div>
+            </div>
+        </div>
+
+        <div id="ilya" class="tab-content">
+            <div class="user-section">
+                <div class="user-header">
+                    <div class="user-avatar ilya">И</div>
+                    <div class="user-info">
+                        <h2>Илья</h2>
+                        <div class="user-stats"><span class="stat-badge">✓ 20/20</span><span class="stat-badge">📅 14.09.2026</span></div>
+                    </div>
+                </div>
+                <div class="table-wrapper"><div class="table-container"><table style="min-width: auto;"><thead><tr><th style="width: 60px;">Место</th><th>Команда</th></tr></thead><tbody id="ilyaTableBody"></tbody></table></div></div>
+            </div>
+        </div>
+
+        <div id="comparison" class="tab-content">
+            <h2 class="section-title"> Сравнение прогнозов</h2>
+            <div class="table-wrapper">
+                <div class="table-header"><h2>📋 Детальное сравнение</h2></div>
+                <div class="table-container">
+                    <table>
+                        <thead><tr><th>Команда</th><th>Реально</th><th>Денис</th><th>Δ</th><th>Дима</th><th>Δ</th><th>Илья</th><th>Δ</th></tr></thead>
+                        <tbody id="comparisonTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="teams" class="tab-content">
+            <h2 class="section-title">️ Все команды АПЛ</h2>
+            <div class="teams-grid" id="teamsGrid"></div>
+        </div>
+    </main>
+
+    <script>
+        const predictions = {
+            denis: ['Манчестер Сити', 'Арсенал', 'Челси', 'Ливерпуль', 'Эвертон', 'Тоттенхэм Хотспур', 'Брайтон', 'Манчестер Юнайтед', 'Ноттингем Форест', 'Астон Вилла', 'Ньюкасл', 'Лидс Юнайтед', 'Кристал Пэлас', 'Сандерленд', 'Брентфорд', 'Халл Сити', 'Фулхэм', 'Борнмут', 'Ипсвич Таун', 'Ковентри Сити'],
+            dima: ['Арсенал', 'Манчестер Сити', 'Челси', 'Брайтон', 'Манчестер Юнайтед', 'Ливерпуль', 'Ньюкасл', null, null, null, null, null, null, null, null, null, null, null, null, null],
+            ilya: ['Арсенал', 'Манчестер Сити', 'Челси', 'Манчестер Юнайтед', 'Ливерпуль', 'Тоттенхэм Хотспур', 'Брентфорд', 'Брайтон', 'Астон Вилла', 'Ньюкасл', 'Борнмут', 'Эвертон', 'Лидс Юнайтед', 'Ноттингем Форест', 'Кристал Пэлас', 'Сандерленд', 'Халл Сити', 'Ипсвич Таун', 'Фулхэм', 'Ковентри Сити']
+        };
+
+        const teamBadges = {
+            'Арсенал': 'https://resources.premierleague.com/premierleague/badges/t3.svg',
+            'Манчестер Сити': 'https://resources.premierleague.com/premierleague/badges/t43.svg',
+            'Челси': 'https://resources.premierleague.com/premierleague/badges/t8.svg',
+            'Ливерпуль': 'https://resources.premierleague.com/premierleague/badges/t14.svg',
+            'Эвертон': 'https://resources.premierleague.com/premierleague/badges/t11.svg',
+            'Тоттенхэм Хотспур': 'https://resources.premierleague.com/premierleague/badges/t6.svg',
+            'Брайтон': 'https://resources.premierleague.com/premierleague/badges/t36.svg',
+            'Манчестер Юнайтед': 'https://resources.premierleague.com/premierleague/badges/t1.svg',
+            'Ноттингем Форест': 'https://resources.premierleague.com/premierleague/badges/t17.svg',
+            'Астон Вилла': 'https://resources.premierleague.com/premierleague/badges/t7.svg',
+            'Ньюкасл': 'https://resources.premierleague.com/premierleague/badges/t4.svg',
+            'Лидс Юнайтед': 'https://resources.premierleague.com/premierleague/badges/t2.svg',
+            'Кристал Пэлас': 'https://resources.premierleague.com/premierleague/badges/t31.svg',
+            'Сандерленд': 'https://resources.premierleague.com/premierleague/badges/t56.svg',
+            'Брентфорд': 'https://resources.premierleague.com/premierleague/badges/t94.svg',
+            'Халл Сити': 'https://resources.premierleague.com/premierleague/badges/t56.svg',
+            'Фулхэм': 'https://resources.premierleague.com/premierleague/badges/t54.svg',
+            'Борнмут': 'https://resources.premierleague.com/premierleague/badges/t91.svg',
+            'Ипсвич Таун': 'https://resources.premierleague.com/premierleague/badges/t40.svg',
+            'Ковентри Сити': 'https://resources.premierleague.com/premierleague/badges/t91.svg'
+        };
+
+        const fplIds = { denis: '44945', dima: '611237', ilya: '611230', league: '598822' };
+        const WORKER_URL = 'https://sports-proxy.kidisildur1.workers.dev';
+        let currentTable = [];
+        let fplData = { denis: null, dima: null, ilya: null };
+
+        function logStatus(msg, type = 'info') {
+            const log = document.getElementById('statusLog');
+            log.style.display = 'block';
+            const item = document.createElement('div');
+            item.className = `log-item log-${type}`;
+            item.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+            log.appendChild(item);
+            log.scrollTop = log.scrollHeight;
+        }
+
+        async function proxyFetch(targetUrl) {
+            const response = await fetch(`${WORKER_URL}?url=${encodeURIComponent(targetUrl)}`, {
+                headers: { 'Accept': 'text/html,application/json' }
+            });
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const text = await response.text();
+            return { text, contentType: response.headers.get('content-type') || '' };
+        }
+
+        function parseHTML(html, userId) {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            
+            // Ищем название команды
+            let name = null;
+            const titleSelectors = [
+                'h1', '.team-name', '.fantasy-team-name', '[class*="team-name"]',
+                '.user-name', '[class*="user-name"]', 'title'
+            ];
+            for (const sel of titleSelectors) {
+                const el = doc.querySelector(sel);
+                if (el && el.textContent.trim()) {
+                    name = el.textContent.trim();
+                    break;
+                }
+            }
+            if (!name) name = `Команда ${userId}`;
+            
+            // Ищем очки (разные возможные селекторы)
+            let points = 0;
+            const pointsSelectors = [
+                '[class*="total-points"]', '.points-value', '[data-points]',
+                '.score', '[class*="score"]', '.total-score'
+            ];
+            for (const sel of pointsSelectors) {
+                const el = doc.querySelector(sel);
+                if (el) {
+                    const num = parseInt(el.textContent.replace(/\D/g, ''));
+                    if (!isNaN(num)) {
+                        points = num;
+                        break;
+                    }
+                }
+            }
+            
+            // Ищем место в рейтинге
+            let rank = 0;
+            const rankSelectors = [
+                '[class*="rank"]', '.position', '[class*="position"]', '.place'
+            ];
+            for (const sel of rankSelectors) {
+                const el = doc.querySelector(sel);
+                if (el) {
+                    const num = parseInt(el.textContent.replace(/\D/g, ''));
+                    if (!isNaN(num)) {
+                        rank = num;
+                        break;
+                    }
+                }
+            }
+            
+            return { name, points, rank, html: html.substring(0, 500) };
+        }
+
+        async function loadFPLData() {
+            const btn = document.getElementById('loadFplBtn');
+            btn.disabled = true;
+            btn.textContent = '⏳ Загрузка...';
+            document.getElementById('statusLog').innerHTML = '';
+            logStatus('🚀 Начинаем парсинг HTML-страниц команд...', 'info');
+            
+            const users = ['denis', 'dima', 'ilya'];
+            let successCount = 0;
+
+            for (const user of users) {
+                const teamId = fplIds[user];
+                const url = `https://www.sports.ru/fantasy/football/england/${fplIds.league}/ratings/${teamId}/`;
+                
+                logStatus(`\n Парсю страницу для ${user} (ID: ${teamId})`, 'info');
+                logStatus(`URL: ${url}`, 'info');
+                
+                try {
+                    const result = await proxyFetch(url);
+                    logStatus(`✅ Страница получена! Размер: ${result.text.length} символов`, 'success');
+                    
+                    const data = parseHTML(result.text, user);
+                    logStatus(`📊 Найдено: ${data.name}, очков: ${data.points}, место: ${data.rank}`, 'info');
+                    
+                    if (data.points > 0 || data.name !== `Команда ${user}`) {
+                        fplData[user] = {
+                            name: data.name,
+                            totalPoints: data.points,
+                            currentEvent: 1,
+                            eventPoints: data.points,
+                            rank: data.rank
+                        };
+                        logStatus(`✅ Успешно распознано!`, 'success');
+                        successCount++;
+                    } else {
+                        logStatus(`⚠️ Не найдены очки на странице`, 'error');
+                        logStatus(`Пример HTML: ${data.html}`, 'info');
+                    }
+                } catch (error) {
+                    logStatus(`❌ Ошибка: ${error.message}`, 'error');
+                }
+            }
+
+            if (successCount > 0) {
+                renderFPLLeaderboard();
+                logStatus(`\n🎉 Итого загружено: ${successCount} из 3 команд`, 'success');
+                showNotification(`Загружено: ${successCount}/3 команд`, 'success');
+            } else {
+                logStatus(`\n Не удалось распарсить ни одну команду`, 'error');
+                showNotification('Не удалось загрузить данные', 'error');
+            }
+
+            btn.disabled = false;
+            btn.textContent = '🔄 Загрузить данные Fantasy';
+        }
+
+        function renderFPLLeaderboard() {
+            const totals = {
+                denis: { name: 'Денис', total: 0, gws: 0, max: 0, color: '#667eea' },
+                dima: { name: 'Дима', total: 0, gws: 0, max: 0, color: '#f093fb' },
+                ilya: { name: 'Илья', total: 0, gws: 0, max: 0, color: '#4facfe' }
+            };
+
+            ['denis', 'dima', 'ilya'].forEach(user => {
+                if (fplData[user]) {
+                    totals[user].name = fplData[user].name;
+                    totals[user].total = fplData[user].totalPoints;
+                    totals[user].gws = fplData[user].currentEvent || 1;
+                    totals[user].max = fplData[user].eventPoints;
+                }
+            });
+
+            const sorted = Object.values(totals).sort((a, b) => b.total - a.total);
+            document.getElementById('fplLeaderboard').innerHTML = sorted.map((p, idx) => `
+                <div class="fpl-card" style="border-top: 4px solid ${p.color}">
+                    <div class="fpl-rank">#${idx + 1}</div>
+                    <div class="fpl-name">${p.name}</div>
+                    <div style="font-size: 2.5rem; font-weight: 800;">${p.total}</div>
+                    <div style="color: var(--text-secondary); margin-bottom: 1rem;">очков</div>
+                    <div class="fpl-stats-row">
+                        <div class="fpl-stat-item"><div class="fpl-stat-val">${p.gws}</div><div class="fpl-stat-lbl">туров</div></div>
+                        <div class="fpl-stat-item"><div class="fpl-stat-val">${p.gws > 0 ? (p.total / p.gws).toFixed(1) : 0}</div><div class="fpl-stat-lbl">среднее</div></div>
+                        <div class="fpl-stat-item"><div class="fpl-stat-val">${p.max}</div><div class="fpl-stat-lbl">макс.</div></div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function fetchTableFromAPI() {
+            try {
+                const response = await fetch('https://www.thesportsdb.com/api/v1/json/3/lookuptable.php?l=4328');
+                if (!response.ok) throw new Error('API error');
+                const data = await response.json();
+                return data.table.map((team, index) => ({
+                    pos: index + 1, team: mapTeamName(team.strTeam),
+                    played: parseInt(team.intPlayed) || 0, won: parseInt(team.intWin) || 0,
+                    drawn: parseInt(team.intDraw) || 0, lost: parseInt(team.intLoss) || 0,
+                    goalsFor: parseInt(team.intGoalsFor) || 0, goalsAgainst: parseInt(team.intGoalsAgainst) || 0,
+                    goalDiff: parseInt(team.intGoalDifference) || 0, points: parseInt(team.intPoints) || 0
+                }));
+            } catch (error) { return getFallbackData(); }
+        }
+
+        function mapTeamName(name) {
+            const m = { 'Arsenal': 'Арсенал', 'Manchester City': 'Манчестер Сити', 'Chelsea': 'Челси', 'Liverpool': 'Ливерпуль', 'Everton': 'Эвертон', 'Tottenham Hotspur': 'Тоттенхэм Хотспур', 'Brighton': 'Брайтон', 'Manchester United': 'Манчестер Юнайтед', 'Nottingham Forest': 'Ноттингем Форест', 'Aston Villa': 'Астон Вилла', 'Newcastle': 'Ньюкасл', 'Leeds United': 'Лидс Юнайтед', 'Crystal Palace': 'Кристал Пэлас', 'Sunderland': 'Сандерленд', 'Brentford': 'Брентфорд', 'Hull City': 'Халл Сити', 'Fulham': 'Фулхэм', 'Bournemouth': 'Борнмут', 'Ipswich Town': 'Ипсвич Таун', 'Coventry City': 'Ковентри Сити' };
+            return m[name] || name;
+        }
+
+        function getFallbackData() {
+            return [
+                { pos: 1, team: 'Арсенал', played: 4, won: 4, drawn: 0, lost: 0, goalsFor: 8, goalsAgainst: 1, goalDiff: 7, points: 12 },
+                { pos: 2, team: 'Манчестер Сити', played: 4, won: 4, drawn: 0, lost: 0, goalsFor: 8, goalsAgainst: 2, goalDiff: 6, points: 12 },
+                { pos: 3, team: 'Халл Сити', played: 4, won: 2, drawn: 2, lost: 0, goalsFor: 5, goalsAgainst: 2, goalDiff: 3, points: 8 },
+                { pos: 4, team: 'Брайтон', played: 4, won: 2, drawn: 1, lost: 1, goalsFor: 13, goalsAgainst: 5, goalDiff: 8, points: 7 },
+                { pos: 5, team: 'Челси', played: 4, won: 2, drawn: 1, lost: 1, goalsFor: 10, goalsAgainst: 9, goalDiff: 1, points: 7 },
+                { pos: 6, team: 'Брентфорд', played: 4, won: 1, drawn: 3, lost: 0, goalsFor: 7, goalsAgainst: 4, goalDiff: 3, points: 6 },
+                { pos: 7, team: 'Ливерпуль', played: 4, won: 1, drawn: 3, lost: 0, goalsFor: 6, goalsAgainst: 4, goalDiff: 2, points: 6 },
+                { pos: 8, team: 'Эвертон', played: 4, won: 1, drawn: 3, lost: 0, goalsFor: 5, goalsAgainst: 3, goalDiff: 2, points: 6 },
+                { pos: 9, team: 'Ипсвич Таун', played: 4, won: 2, drawn: 0, lost: 2, goalsFor: 7, goalsAgainst: 10, goalDiff: -3, points: 6 },
+                { pos: 10, team: 'Ньюкасл', played: 3, won: 1, drawn: 2, lost: 0, goalsFor: 6, goalsAgainst: 4, goalDiff: 2, points: 5 },
+                { pos: 11, team: 'Лидс Юнайтед', played: 3, won: 1, drawn: 2, lost: 0, goalsFor: 3, goalsAgainst: 2, goalDiff: 1, points: 5 },
+                { pos: 12, team: 'Ноттингем Форест', played: 4, won: 1, drawn: 2, lost: 1, goalsFor: 4, goalsAgainst: 4, goalDiff: 0, points: 5 },
+                { pos: 13, team: 'Манчестер Юнайтед', played: 4, won: 1, drawn: 1, lost: 2, goalsFor: 7, goalsAgainst: 7, goalDiff: 0, points: 4 },
+                { pos: 14, team: 'Сандерленд', played: 4, won: 1, drawn: 1, lost: 2, goalsFor: 3, goalsAgainst: 5, goalDiff: -2, points: 4 },
+                { pos: 15, team: 'Борнмут', played: 4, won: 0, drawn: 3, lost: 1, goalsFor: 6, goalsAgainst: 7, goalDiff: -1, points: 3 },
+                { pos: 16, team: 'Кристал Пэлас', played: 4, won: 1, drawn: 0, lost: 3, goalsFor: 6, goalsAgainst: 11, goalDiff: -5, points: 3 },
+                { pos: 17, team: 'Тоттенхэм Хотспур', played: 4, won: 0, drawn: 2, lost: 2, goalsFor: 0, goalsAgainst: 5, goalDiff: -5, points: 2 },
+                { pos: 18, team: 'Фулхэм', played: 4, won: 0, drawn: 1, lost: 3, goalsFor: 4, goalsAgainst: 7, goalDiff: -3, points: 1 },
+                { pos: 19, team: 'Астон Вилла', played: 4, won: 0, drawn: 1, lost: 3, goalsFor: 1, goalsAgainst: 7, goalDiff: -6, points: 1 },
+                { pos: 20, team: 'Ковентри Сити', played: 4, won: 0, drawn: 0, lost: 4, goalsFor: 0, goalsAgainst: 10, goalDiff: -10, points: 0 }
+            ];
+        }
+
+        async function updateAllData() {
+            const btn = document.getElementById('updateBtn');
+            btn.classList.add('loading'); btn.disabled = true;
+            try {
+                currentTable = await fetchTableFromAPI();
+                renderCurrentTable(); renderComparison();
+                showNotification('Таблица обновлена! (все 20 команд)', 'success');
+            } catch (e) { showNotification('Ошибка обновления', 'error'); }
+            finally { btn.classList.remove('loading'); btn.disabled = false; }
+        }
+
+        function renderCurrentTable() {
+            document.getElementById('currentTableBody').innerHTML = currentTable.map(t => {
+                let posClass = t.pos <= 4 ? 'pos-ucl' : t.pos === 5 ? 'pos-uel' : t.pos >= 18 ? 'pos-rel' : 'pos-mid';
+                return `<tr>
+                    <td><span class="pos-badge ${posClass}">${t.pos}</span></td>
+                    <td><div class="team-cell"><img src="${teamBadges[t.team] || ''}" class="team-badge"><span>${t.team}</span></div></td>
+                    <td>${t.played}</td><td>${t.won}</td><td>${t.drawn}</td><td>${t.lost}</td>
+                    <td>${t.goalsFor}</td><td>${t.goalsAgainst}</td><td>${t.goalDiff > 0 ? '+' : ''}${t.goalDiff}</td>
+                    <td><span class="points-badge">${t.points}</span></td>
+                </tr>`;
+            }).join('');
+        }
+
+        function renderPredictions() {
+            const render = (arr, tbodyId) => {
+                document.getElementById(tbodyId).innerHTML = arr.map((team, idx) => `
+                    <tr>
+                        <td><span class="pos-badge ${idx < 4 ? 'pos-ucl' : idx === 4 ? 'pos-uel' : idx >= 17 ? 'pos-rel' : 'pos-mid'}">${idx + 1}</span></td>
+                        <td>${team ? `<div class="team-cell"><img src="${teamBadges[team] || ''}" class="team-badge">${team}</div>` : '<span style="color: var(--text-muted);">— выберите —</span>'}</td>
+                    </tr>
+                `).join('');
+            };
+            render(predictions.denis, 'denisTableBody');
+            render(predictions.dima, 'dimaTableBody');
+            render(predictions.ilya, 'ilyaTableBody');
+        }
+
+        function renderComparison() {
+            const tbody = document.getElementById('comparisonTableBody');
+            tbody.innerHTML = currentTable.map(realTeam => {
+                const realPos = realTeam.pos;
+                const getDiff = (user) => { const p = predictions[user].indexOf(realTeam.team) + 1; return p ? Math.abs(realPos - p) : null; };
+                const dD = getDiff('denis'), dM = getDiff('dima'), dI = getDiff('ilya');
+                const dClass = (d) => d === null ? '' : d === 0 ? 'pos-ucl' : d <= 2 ? 'pos-uel' : 'pos-rel';
+                const pClass = (d) => d === null ? 'pos-mid' : d === 0 ? 'pos-ucl' : d <= 2 ? 'pos-uel' : 'pos-rel';
+                const dText = (d) => d === null ? '-' : d === 0 ? '✓' : (d > 0 ? '+' + d : d);
+                const pPos = (user) => predictions[user].indexOf(realTeam.team) + 1 || '-';
+                return `<tr>
+                    <td><div class="team-cell"><img src="${teamBadges[realTeam.team] || ''}" class="team-badge">${realTeam.team}</div></td>
+                    <td><span class="pos-badge pos-ucl" style="width:28px;height:28px;font-size:0.8rem;">${realPos}</span></td>
+                    <td><span class="pos-badge ${pClass(dD)}" style="width:28px;height:28px;font-size:0.8rem;">${pPos('denis')}</span></td>
+                    <td><span class="stat-badge ${dClass(dD)}" style="font-size:0.7rem;">${dText(dD)}</span></td>
+                    <td><span class="pos-badge ${pClass(dM)}" style="width:28px;height:28px;font-size:0.8rem;">${pPos('dima')}</span></td>
+                    <td><span class="stat-badge ${dClass(dM)}" style="font-size:0.7rem;">${dText(dM)}</span></td>
+                    <td><span class="pos-badge ${pClass(dI)}" style="width:28px;height:28px;font-size:0.8rem;">${pPos('ilya')}</span></td>
+                    <td><span class="stat-badge ${dClass(dI)}" style="font-size:0.7rem;">${dText(dI)}</span></td>
+                </tr>`;
+            }).join('');
+        }
+
+        function renderTeams() {
+            document.getElementById('teamsGrid').innerHTML = Object.keys(teamBadges).map(team => `
+                <div class="team-cell" style="background: var(--bg-card); padding: 1rem; border-radius: 12px; border: 1px solid var(--border);">
+                    <img src="${teamBadges[team]}" class="team-badge" style="width: 40px; height: 40px;">
+                    <span>${team}</span>
+                </div>
+            `).join('');
+        }
+
+        function showNotification(text, type = 'success') {
+            const notif = document.getElementById('notification');
+            document.getElementById('notificationIcon').textContent = type === 'success' ? '✅' : '❌';
+            document.getElementById('notificationText').textContent = text;
+            notif.className = 'notification show' + (type === 'error' ? ' error' : '');
+            setTimeout(() => notif.classList.remove('show'), 3000);
+        }
+
+        function setupTabs() {
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                    this.classList.add('active');
+                    document.getElementById(this.getAttribute('data-tab')).classList.add('active');
+                });
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', async function() {
+            setupTabs();
+            renderPredictions();
+            renderTeams();
+            renderFPLLeaderboard();
+            await updateAllData();
+        });
+    </script>
+</body>
+</html>
