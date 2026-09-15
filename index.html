@@ -81,6 +81,18 @@
         .user-info h2 { font-family: 'Space Grotesk', sans-serif; font-size: 1.6rem; font-weight: 700; }
         .user-stats { display: flex; gap: 0.6rem; margin-top: 0.6rem; flex-wrap: wrap; }
         .stat-badge { background: var(--bg-glass); padding: 0.35rem 0.7rem; border-radius: 8px; border: 1px solid var(--border); font-size: 0.75rem; }
+        .prediction-hero { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 1rem; align-items: center; margin-bottom: 1.25rem; padding: 1rem 1.1rem; border: 1px solid var(--border); border-radius: 14px; background: linear-gradient(135deg, rgba(255,255,255,.07), rgba(255,255,255,.01)); }
+        .prediction-copy { min-width: 0; }
+        .prediction-kicker { color: var(--secondary); font-size: .72rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+        .prediction-quote { margin-top: .35rem; color: var(--text-secondary); font-size: .9rem; }
+        .prediction-meter { min-width: 122px; text-align: right; }
+        .prediction-meter strong { display: block; font: 800 1.6rem/1 'Space Grotesk', sans-serif; }
+        .prediction-meter span { color: var(--text-secondary); font-size: .72rem; }
+        .progress-track { height: 7px; overflow: hidden; margin-top: .6rem; border-radius: 10px; background: rgba(255,255,255,.1); }
+        .progress-fill { height: 100%; border-radius: inherit; background: var(--gradient-pl); transition: width .35s ease; }
+        .player-chip { display: inline-flex; align-items: center; gap: .55rem; padding: .35rem .65rem .35rem .35rem; border: 1px solid var(--border); border-radius: 999px; background: rgba(0,0,0,.18); }
+        .player-chip .user-avatar { width: 34px; height: 34px; font-size: .95rem; }
+        .player-chip b { font-size: .82rem; }
 
         .notification { position: fixed; top: 80px; right: 10px; left: 10px; background: var(--bg-card); border: 1px solid var(--secondary); border-radius: 12px; padding: 1rem; z-index: 1000; transform: translateY(-200px); opacity: 0; transition: all 0.3s; text-align: center; }
         .notification.show { transform: translateY(0); opacity: 1; }
@@ -106,6 +118,8 @@
             .logo-icon { width: 40px; height: 40px; font-size: 1.3rem; }
             .logo-text h1 { font-size: 1rem; }
             .header-actions { width: 100%; justify-content: space-between; }
+            .prediction-hero { grid-template-columns: 1fr; }
+            .prediction-meter { text-align: left; }
         }
 
         .squad-toolbar {display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-bottom:16px}
@@ -219,8 +233,12 @@
                     <div class="user-avatar denis">Д</div>
                     <div class="user-info">
                         <h2>Денис</h2>
-                        <div class="user-stats"><span class="stat-badge">✓ 20/20</span><span class="stat-badge"> 14.09.2026</span></div>
+                        <div class="user-stats"><span class="stat-badge" id="denisCount">✓ 20/20</span><span class="stat-badge">📅 14.09.2026</span></div>
                     </div>
+                </div>
+                <div class="prediction-hero">
+                    <div class="prediction-copy"><span class="prediction-kicker">Готовый прогноз</span><p class="prediction-quote">«Сити на первом, но интрига до последнего тура»</p><div class="progress-track"><div class="progress-fill" id="denisProgress"></div></div></div>
+                    <div class="prediction-meter"><strong id="denisPercent">100%</strong><span>таблица заполнена</span></div>
                 </div>
                 <div class="table-wrapper"><div class="table-container"><table style="min-width: auto;"><thead><tr><th style="width: 60px;">Место</th><th>Команда</th></tr></thead><tbody id="denisTableBody"></tbody></table></div></div>
             </div>
@@ -232,8 +250,12 @@
                     <div class="user-avatar dima">Д</div>
                     <div class="user-info">
                         <h2>Дима</h2>
-                        <div class="user-stats"><span class="stat-badge">✓ 7/20</span><span class="stat-badge">📅 14.09.2026</span></div>
+                        <div class="user-stats"><span class="stat-badge" id="dimaCount">✓ 7/20</span><span class="stat-badge">📅 14.09.2026</span></div>
                     </div>
+                </div>
+                <div class="prediction-hero">
+                    <div class="prediction-copy"><span class="prediction-kicker">В процессе</span><p class="prediction-quote">«Топ-7 уже расставлен. Осталось решить судьбу середины»</p><div class="progress-track"><div class="progress-fill" id="dimaProgress"></div></div></div>
+                    <div class="prediction-meter"><strong id="dimaPercent">35%</strong><span>таблица заполнена</span></div>
                 </div>
                 <div class="table-wrapper"><div class="table-container"><table style="min-width: auto;"><thead><tr><th style="width: 60px;">Место</th><th>Команда</th></tr></thead><tbody id="dimaTableBody"></tbody></table></div></div>
             </div>
@@ -245,8 +267,12 @@
                     <div class="user-avatar ilya">И</div>
                     <div class="user-info">
                         <h2>Илья</h2>
-                        <div class="user-stats"><span class="stat-badge">✓ 20/20</span><span class="stat-badge">📅 14.09.2026</span></div>
+                        <div class="user-stats"><span class="stat-badge" id="ilyaCount">✓ 20/20</span><span class="stat-badge">📅 14.09.2026</span></div>
                     </div>
+                </div>
+                <div class="prediction-hero">
+                    <div class="prediction-copy"><span class="prediction-kicker">Готовый прогноз</span><p class="prediction-quote">«Арсенал в чемпионской гонке, а внизу — без права на ошибку»</p><div class="progress-track"><div class="progress-fill" id="ilyaProgress"></div></div></div>
+                    <div class="prediction-meter"><strong id="ilyaPercent">100%</strong><span>таблица заполнена</span></div>
                 </div>
                 <div class="table-wrapper"><div class="table-container"><table style="min-width: auto;"><thead><tr><th style="width: 60px;">Место</th><th>Команда</th></tr></thead><tbody id="ilyaTableBody"></tbody></table></div></div>
             </div>
@@ -576,6 +602,13 @@
             render(predictions.denis, 'denisTableBody');
             render(predictions.dima, 'dimaTableBody');
             render(predictions.ilya, 'ilyaTableBody');
+            ['denis', 'dima', 'ilya'].forEach(user => {
+                const filled = predictions[user].filter(Boolean).length;
+                const percent = Math.round(filled / 20 * 100);
+                document.getElementById(`${user}Count`).textContent = `✓ ${filled}/20`;
+                document.getElementById(`${user}Percent`).textContent = `${percent}%`;
+                document.getElementById(`${user}Progress`).style.width = `${percent}%`;
+            });
         }
 
         function renderComparison() {
