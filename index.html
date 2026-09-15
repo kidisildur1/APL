@@ -163,7 +163,16 @@
         .podium-card .medal { font-size:2rem; }.podium-card strong { display:block;font-size:1.15rem;margin:.35rem 0; }.podium-card small {color:var(--text-secondary);display:block;min-height:32px;}.podium-score { font-size:1.8rem;font-weight:800;color:var(--secondary);margin-top:.7rem; }
         .tour-feed { margin-top:1rem; padding:1.1rem; background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg); }
         .tour-feed h3 {margin:0 0 .8rem;font-family:'Space Grotesk',sans-serif}.feed-item {display:flex;gap:.75rem;padding:.75rem 0;border-top:1px solid var(--border);align-items:center}.feed-icon{font-size:1.35rem;width:32px;text-align:center}.feed-item p{margin:0;color:var(--text-secondary);font-size:.9rem}.feed-item b{color:var(--text-primary)}
+        .chaos-banner { margin-bottom:1rem; padding:.8rem 1rem; display:flex; justify-content:space-between; gap:.8rem; align-items:center; border:1px solid rgba(0,255,163,.38); border-radius:12px; background:linear-gradient(90deg,rgba(0,255,163,.14),rgba(140,82,255,.2)); font-weight:800; }
+        .chaos-dot { width:10px;height:10px;border-radius:99px;background:#00ffa3;box-shadow:0 0 18px #00ffa3;display:inline-block;margin-right:.45rem; }
+        .impact-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:1rem; margin-top:1rem; }
+        .impact-panel { border:1px solid var(--border); background:linear-gradient(155deg,rgba(255,255,255,.06),rgba(255,255,255,.01)); border-radius:18px; overflow:hidden; }
+        .impact-panel h3 {margin:0;padding:.9rem 1rem;font-size:.94rem;font-family:'Space Grotesk',sans-serif;border-bottom:1px solid var(--border)}
+        .impact-item{display:grid;grid-template-columns:44px 1fr auto;gap:.65rem;align-items:center;padding:.7rem .85rem;border-bottom:1px solid rgba(255,255,255,.06)}.impact-item:last-child{border:0}.impact-kit{width:42px;height:42px;object-fit:contain}.impact-name{font-size:.88rem;font-weight:800}.impact-team{font-size:.72rem;color:var(--text-secondary);margin-top:2px}.impact-points{font-size:1.25rem;font-weight:900;color:#00ffa3;text-align:right}.impact-points.bad{color:#ff6289}.impact-points small{display:block;font-size:.62rem;color:var(--text-secondary);font-weight:700}
+        .bench-alert { margin-top:1rem;padding:1rem;border:1px dashed rgba(255,98,137,.7);border-radius:16px;background:linear-gradient(90deg,rgba(255,98,137,.14),rgba(255,180,0,.08)); }.bench-alert h3{margin:0 0 .25rem;font-family:'Space Grotesk',sans-serif}.bench-row{display:flex;gap:.6rem;flex-wrap:wrap;margin-top:.75rem}.bench-chip{display:flex;align-items:center;gap:.35rem;background:rgba(0,0,0,.24);padding:.35rem .55rem;border-radius:99px;font-size:.78rem;font-weight:700}.bench-chip img{width:25px;height:25px;object-fit:contain}
+        .squad-tabs{display:flex;gap:.5rem;overflow:auto;margin:1rem 0}.squad-tab{border:1px solid var(--border);background:var(--bg-card);color:var(--text-secondary);padding:.6rem .85rem;border-radius:10px;cursor:pointer;font:inherit;font-weight:800;white-space:nowrap}.squad-tab.active{background:var(--gradient-pl);color:white;border-color:transparent}.analysis-empty{padding:1.2rem;color:var(--text-secondary);background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg)}
         @media(max-width:760px){.tour-analysis,.analysis-grid{grid-template-columns:1fr}.analysis-hero{min-height:230px}.analysis-side{grid-template-columns:1fr 1fr}.fun-card{min-height:135px}} @media(max-width:480px){.analysis-side{grid-template-columns:1fr}}
+        @media(max-width:760px){.impact-grid{grid-template-columns:1fr}}
         </style>
 </head>
 <body>
@@ -460,39 +469,38 @@
             }).join('');
         }
 
-        function renderTourAnalysis() {
+        let analysisRequest = 0;
+        async function renderTourAnalysis() {
             const host = document.getElementById('tourAnalysis');
-            const players = [
-                {key:'denis', name:'Денис', emoji:'🦁', color:'#667eea'},
-                {key:'dima', name:'Дима', emoji:'🧤', color:'#f093fb'},
-                {key:'ilya', name:'Илья', emoji:'⚡', color:'#4facfe'}
-            ].map(player => ({...player, data:fplData[player.key]}));
-            const loaded = players.filter(player => Number.isFinite(player.data?.totalPoints));
-            if (!loaded.length) {
-                host.innerHTML = `<div class="analysis-hero"><div class="analysis-eyebrow">Раздевалка готова</div><h3>Загружаем героев тура</h3><p>Как только Sports.ru отдаст результаты, здесь появятся лидер, очки последнего тура и мини-разбор вашей лиги.</p><div class="analysis-stickers"><span class="sticker">⌛ Ждём свистка</span><span class="sticker">🎮 Fantasy АПЛ</span></div></div>`;
-                return;
-            }
-            const byTotal = [...loaded].sort((a,b) => b.data.totalPoints - a.data.totalPoints);
-            const byTour = [...loaded].sort((a,b) => (b.data.eventPoints ?? -Infinity) - (a.data.eventPoints ?? -Infinity));
-            const leader = byTotal[0];
-            const tourStar = byTour[0];
-            const gap = loaded.length > 1 ? leader.data.totalPoints - byTotal.at(-1).data.totalPoints : 0;
-            const tour = leader.data.tourName || 'последнего тура';
-            host.innerHTML = `
-                <div class="tour-analysis">
-                    <article class="analysis-hero">
-                        <div class="analysis-eyebrow">${escapeHTML(tour)} · обзор раздевалки</div>
-                        <h3>${leader.emoji} ${escapeHTML(leader.name)} держит корону</h3>
-                        <p>В общем зачёте лидер набрал <b>${leader.data.totalPoints}</b> очков. Разрыв до последнего места — <b>${gap}</b>. Мяч круглый, таблица тоже любит сюрпризы.</p>
-                        <div class="analysis-stickers"><span class="sticker">🏆 Лидер: ${escapeHTML(leader.data.name)}</span><span class="sticker">📏 Разрыв ${gap} очк.</span><span class="sticker">🔥 Тур: ${Number.isFinite(tourStar.data.eventPoints) ? tourStar.data.eventPoints + ' очк.' : 'в ожидании'}</span></div>
-                    </article>
-                    <div class="analysis-side">
-                        <article class="fun-card"><span class="fun-emoji">${tourStar.emoji}</span><h4>Король тура</h4><p><b>${escapeHTML(tourStar.name)}</b> принёс ${Number.isFinite(tourStar.data.eventPoints) ? '<b>' + tourStar.data.eventPoints + '</b> очков' : 'свои лучшие эмоции'} в ${escapeHTML(tour)}.</p></article>
-                        <article class="fun-card"><span class="fun-emoji">🎯</span><h4>Тактика недели</h4><p>Открой состав, проверь капитана и посмотри, кто оставил очки на скамейке.</p></article>
-                    </div>
-                </div>
-                <div class="analysis-grid">${byTotal.map((player,index) => `<article class="podium-card" style="border-top:4px solid ${player.color}"><span class="medal">${['🥇','🥈','🥉'][index] || '⚽'}</span><strong>${escapeHTML(player.name)}</strong><small>${escapeHTML(player.data.name || 'Команда Fantasy')}</small><div class="podium-score">${player.data.totalPoints} <small>очк.</small></div></article>`).join('')}</div>
-                <section class="tour-feed"><h3>📣 Что произошло</h3><div class="feed-item"><span class="feed-icon">👑</span><p><b>${escapeHTML(leader.name)}</b> идёт первым в лиге «Три товарища».</p></div><div class="feed-item"><span class="feed-icon">🚀</span><p>Лучший результат ${escapeHTML(tour)}: <b>${escapeHTML(tourStar.name)}</b>${Number.isFinite(tourStar.data.eventPoints) ? ' — ' + tourStar.data.eventPoints + ' очков.' : '.'}</p></div><div class="feed-item"><span class="feed-icon">🧩</span><p>Составы и результаты подгружаются из Sports.ru, поэтому обзор меняется после обновления данных.</p></div></section>`;
+            const latest = (fantasySeason?.tours || []).filter(t => t.status === 'FINISHED').at(-1);
+            const users = [{key:'denis',name:'Денис',emoji:'🦁'},{key:'dima',name:'Дима',emoji:'🧤'},{key:'ilya',name:'Илья',emoji:'⚡'}];
+            if (!latest) { host.innerHTML = '<div class="analysis-empty">⌛ Ждём завершённый тур Sports.ru — после финального свистка тут появится разбор игроков.</div>'; return; }
+            const version = ++analysisRequest;
+            host.innerHTML = '<div class="analysis-empty">🧪 Варим мемный отчёт: считаем героев, грусть и очки на лавке…</div>';
+            try {
+                const queryFields = 'tour{id name status} players{score isCaptain isViceCaptain isStarting substitutePriority seasonPlayer{id name role team{name svgKit{url}}}}';
+                const query = `{fantasyQueries{${users.map(u => `${u.key}:squadTourInfo(input:{squadID:"${fplIds[u.key]}",tourID:"${latest.id}"}){${queryFields}}`).join('')}}}`;
+                const fetched = await Promise.all(users.map(async u => {
+                    const url = USE_SAVED_DATA ? `./data/squads/${fplIds[u.key]}-${latest.id}.json` : (() => {const v=new URL(GRAPHQL_URL);v.searchParams.set('query',query);return v.href;})();
+                    const payload = await (await fetch(url,{cache:'no-store',credentials:'omit'})).json();
+                    return { ...u, squad: USE_SAVED_DATA ? payload.data?.fantasyQueries?.squadTourInfo : payload.data?.fantasyQueries?.[u.key] };
+                }));
+                if (version !== analysisRequest) return;
+                const all = fetched.flatMap(u => (u.squad?.players || []).map(p => ({...p, score:Number(p.score ?? 0), owner:u.name, ownerEmoji:u.emoji})));
+                const starters = all.filter(p => p.isStarting && Number.isFinite(p.score)).sort((a,b) => b.score-a.score);
+                const bench = all.filter(p => !p.isStarting && Number.isFinite(p.score)).sort((a,b) => b.score-a.score);
+                const zeros = starters.filter(p => p.score <= 1).slice(0,5);
+                const stars = starters.slice(0,5);
+                const benchBurn = bench.filter(p => p.score > 1).slice(0,6);
+                const kit = p => { const src=p.seasonPlayer?.team?.svgKit?.url; return src ? `<img class="impact-kit" src="${escapeHTML(src)}" alt="">` : '<span class="impact-kit">👕</span>'; };
+                const item = (p, bad=false) => `<div class="impact-item">${kit(p)}<div><div class="impact-name">${escapeHTML(p.seasonPlayer?.name || 'Игрок')}</div><div class="impact-team">${escapeHTML(p.owner)} ${p.ownerEmoji} · ${escapeHTML(p.seasonPlayer?.team?.name || '')}${p.isCaptain?' · КАПИТАН':''}</div></div><div class="impact-points ${bad?'bad':''}">${p.score}<small>очков</small></div></div>`;
+                const total = Object.values(fplData).filter(x=>Number.isFinite(x?.totalPoints)).sort((a,b)=>b.totalPoints-a.totalPoints);
+                const leader = total[0]; const gap = total.length>1 ? leader.totalPoints-total.at(-1).totalPoints : 0;
+                host.innerHTML = `<div class="chaos-banner"><span><i class="chaos-dot"></i>LIVE-ish · ${escapeHTML(latest.name)} · Sports.ru</span><span>🧨 Режим: разбор полётов</span></div>
+                <div class="tour-analysis"><article class="analysis-hero"><div class="analysis-eyebrow">Fantasy war room</div><h3>Кто тащил. Кто исчез. Кто грел скамейку.</h3><p>Лидер лиги: <b>${escapeHTML(leader?.name || '—')}</b>. Разрыв — <b>${gap}</b> очков. Всё ниже считается по реальным очкам игроков за ${escapeHTML(latest.name)}.</p><div class="analysis-stickers"><span class="sticker">🔥 ${stars[0] ? escapeHTML(stars[0].seasonPlayer.name)+' '+stars[0].score+' очк.' : 'данные в пути'}</span><span class="sticker">🪑 Лавка: ${benchBurn.reduce((s,p)=>s+p.score,0)} очк.</span><span class="sticker">💀 Тихих: ${zeros.length}</span></div></article><div class="analysis-side"><article class="fun-card"><span class="fun-emoji">🧨</span><h4>Очки на лавке</h4><p>${benchBurn.length ? '<b>'+benchBurn.length+'</b> игроков могли добавить драмы. Главный «почему не в старте?» — '+escapeHTML(benchBurn[0].seasonPlayer.name)+'.' : 'Запасные не устроили переворот. Пока.'}</p></article><article class="fun-card"><span class="fun-emoji">🧊</span><h4>Холодный душ</h4><p>${zeros.length ? 'В старте '+zeros.length+' игроков с 0–1 очком. Футбол сегодня выбрал хаос.' : 'Старт не подвёл — редкий день без боли.'}</p></article></div></div>
+                <div class="impact-grid"><section class="impact-panel"><h3>🚀 Принесли очки</h3>${stars.length?stars.map(p=>item(p)).join(''):'<div class="analysis-empty">Нет данных</div>'}</section><section class="impact-panel"><h3>💀 Не проявили себя</h3>${zeros.length?zeros.map(p=>item(p,true)).join(''):'<div class="analysis-empty">Никто не провалился</div>'}</section><section class="impact-panel"><h3>🪑 Очки на замене</h3>${benchBurn.length?benchBurn.map(p=>item(p)).join(''):'<div class="analysis-empty">Лавка без сюжета</div>'}</section></div>
+                <section class="bench-alert"><h3>🚨 Скамейка говорит: «выпусти меня»</h3><p>${benchBurn.length ? 'Эти игроки набрали очки, пока смотрели матч рядом с термосом:' : 'Никто на лавке не набрал больше 1 очка — тренеры могут выдохнуть.'}</p><div class="bench-row">${benchBurn.map(p=>`<span class="bench-chip">${kit(p)} ${escapeHTML(p.seasonPlayer.name)} · ${p.score}</span>`).join('')}</div></section>`;
+            } catch (error) { if (version === analysisRequest) host.innerHTML = `<div class="analysis-empty">⚠️ Анализ ждёт данные состава: ${escapeHTML(error.message)}</div>`; }
         }
 
         let fantasySeason = null;
@@ -535,7 +543,7 @@
                 if (!tourID) throw new Error('Сначала загрузите результаты Fantasy, затем откройте состав.');
                 const query = `{ fantasyQueries { squadTourInfo(input: {squadID: ${JSON.stringify(fplIds[user])}, tourID: ${JSON.stringify(tourID)}}) {
                     tour { id name status }
-                    players { isCaptain isViceCaptain isStarting substitutePriority
+                    players { score isCaptain isViceCaptain isStarting substitutePriority
                         seasonPlayer { id name role team { name svgKit { url } } }
                     }
                 } } }`;

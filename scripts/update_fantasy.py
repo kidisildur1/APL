@@ -48,7 +48,7 @@ def main():
     if len(rows) != 20 or len({r['team']['id'] for r in rows}) != 20 or {r['rank'] for r in rows} != set(range(1,21)) or any(not r['team']['logotype']['url'].startswith('https://') for r in rows):
         raise RuntimeError('Incomplete table or missing team badges')
     pending = {'fantasy.json': payload, 'table.json': table_payload}
-    fields = '''tour { id name status } players { isCaptain isViceCaptain isStarting substitutePriority
+    fields = '''tour { id name status } players { score isCaptain isViceCaptain isStarting substitutePriority
         seasonPlayer { id name role team { name svgKit { url } } } }'''
     for tour in season['tours']:
         if tour['status'] == 'NOT_STARTED':
