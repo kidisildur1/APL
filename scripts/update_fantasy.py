@@ -57,6 +57,23 @@ def main():
         tour_data = query('{fantasyQueries{' + aliases + '}}')['data']['fantasyQueries']
         for user, sid in IDS.items():
             pending[f'squads/{sid}-{tour["id"]}.json'] = {'data': {'fantasyQueries': {'squadTourInfo': tour_data[user]}}}
+    # A second public league: its complete rating and the latest completed-tour squads.
+    league_id = '44923'
+    rating_query = '{fantasyQueries{league(id:"' + league_id + '"){id name totalSquadsCount} rating{squads(input:{entityID:"' + season['id'] + '",entityType:SEASON,sortOrder:DESC,leagueID:"' + league_id + '",pageSize:50,pageNum:1}){list{squad{id name} scoreInfo{place score scoreForLastTour}}}}}}'
+    league_payload = query(rating_query)
+    rating = league_payload['data']['fantasyQueries']['rating']['squads']['list']
+    if not rating:
+        raise RuntimeError('Second league rating is unavailable')
+    latest = next((tour for tour in reversed(season['tours']) if tour['status'] == 'FINISHED'), None)
+    if not latest:
+        raise RuntimeError('No completed tour for second league')
+    league_squads = {}
+    for row in rating:
+        squad = row['squad']
+        details = query('{fantasyQueries{squadTourInfo(input:{squadID:"' + squad['id'] + '",tourID:"' + latest['id'] + '"}){' + fields + '}}}')
+        league_squads[squad['id']] = details['data']['fantasyQueries']['squadTourInfo']
+    pending[f'leagues/{league_id}.json'] = league_payload
+    pending[f'leagues/{league_id}-squads.json'] = {'tour': latest, 'squads': league_squads}
     # Only update the snapshot after every request succeeds.
     for name, document in pending.items():
         document['updatedAt'] = stamp
