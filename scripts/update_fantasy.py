@@ -42,7 +42,12 @@ def main():
         if len(teams) != 1 or teams[0]['id'] != sid or teams[0]['season']['id'] != season['id'] or teams[0]['season']['tournament']['webName'] != 'england' or teams[0]['seasonScoreInfo'] is None:
             raise RuntimeError(f'Wrong or unavailable league team: {user}')
     stamp = datetime.now(timezone.utc).isoformat()
-    pending = {'fantasy.json': payload}
+    table_payload = query('{fantasyQueries{tournament(id:"england",source:HRU){currentSeason{statObject{id name stages{teamStanding{total{rank played win draw loss goalsFor goalsAgainst goalDiff points team{id name logotype(input:{resize:SIZE_64_64}){url}}}}}}}}}}')
+    standings = table_payload['data']['fantasyQueries']['tournament']['currentSeason']['statObject']['stages']
+    rows = [row for stage in standings for row in stage['teamStanding']['total']]
+    if len(rows) != 20 or len({r['team']['id'] for r in rows}) != 20 or {r['rank'] for r in rows} != set(range(1,21)) or any(not r['team']['logotype']['url'].startswith('https://') for r in rows):
+        raise RuntimeError('Incomplete table or missing team badges')
+    pending = {'fantasy.json': payload, 'table.json': table_payload}
     fields = '''tour { id name status } players { isCaptain isViceCaptain isStarting substitutePriority
         seasonPlayer { id name role team { name svgKit { url } } } }'''
     for tour in season['tours']:

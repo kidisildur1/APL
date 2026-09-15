@@ -175,7 +175,7 @@
 
     <main class="container">
         <div id="current" class="tab-content active">
-            <h2 class="section-title">📊 Текущая таблица АПЛ</h2>
+            <h2 class="section-title">📊 Текущая таблица АПЛ</h2><p id="tableStatus" role="status" style="color:var(--text-secondary);margin-bottom:12px">Загрузка таблицы…</p>
             <div class="table-wrapper">
                 <div class="table-header"><h2>🏴󠁧󠁮 Premier League</h2></div>
                 <div class="table-container">
@@ -278,28 +278,8 @@
             ilya: ['Арсенал', 'Манчестер Сити', 'Челси', 'Манчестер Юнайтед', 'Ливерпуль', 'Тоттенхэм Хотспур', 'Брентфорд', 'Брайтон', 'Астон Вилла', 'Ньюкасл', 'Борнмут', 'Эвертон', 'Лидс Юнайтед', 'Ноттингем Форест', 'Кристал Пэлас', 'Сандерленд', 'Халл Сити', 'Ипсвич Таун', 'Фулхэм', 'Ковентри Сити']
         };
 
-        const teamBadges = {
-            'Арсенал': 'https://resources.premierleague.com/premierleague/badges/t3.svg',
-            'Манчестер Сити': 'https://resources.premierleague.com/premierleague/badges/t43.svg',
-            'Челси': 'https://resources.premierleague.com/premierleague/badges/t8.svg',
-            'Ливерпуль': 'https://resources.premierleague.com/premierleague/badges/t14.svg',
-            'Эвертон': 'https://resources.premierleague.com/premierleague/badges/t11.svg',
-            'Тоттенхэм Хотспур': 'https://resources.premierleague.com/premierleague/badges/t6.svg',
-            'Брайтон': 'https://resources.premierleague.com/premierleague/badges/t36.svg',
-            'Манчестер Юнайтед': 'https://resources.premierleague.com/premierleague/badges/t1.svg',
-            'Ноттингем Форест': 'https://resources.premierleague.com/premierleague/badges/t17.svg',
-            'Астон Вилла': 'https://resources.premierleague.com/premierleague/badges/t7.svg',
-            'Ньюкасл': 'https://resources.premierleague.com/premierleague/badges/t4.svg',
-            'Лидс Юнайтед': 'https://resources.premierleague.com/premierleague/badges/t2.svg',
-            'Кристал Пэлас': 'https://resources.premierleague.com/premierleague/badges/t31.svg',
-            'Сандерленд': 'https://resources.premierleague.com/premierleague/badges/t56.svg',
-            'Брентфорд': 'https://resources.premierleague.com/premierleague/badges/t94.svg',
-            'Халл Сити': 'https://resources.premierleague.com/premierleague/badges/t56.svg',
-            'Фулхэм': 'https://resources.premierleague.com/premierleague/badges/t54.svg',
-            'Борнмут': 'https://resources.premierleague.com/premierleague/badges/t91.svg',
-            'Ипсвич Таун': 'https://resources.premierleague.com/premierleague/badges/t40.svg',
-            'Ковентри Сити': 'https://resources.premierleague.com/premierleague/badges/t91.svg'
-        };
+        const teamNamesById = {"arsenal": "Арсенал", "manchester_city": "Манчестер Сити", "chelsea": "Челси", "liverpool": "Ливерпуль", "everton_fc": "Эвертон", "tottenham_hotspur": "Тоттенхэм Хотспур", "brighton_hove_albion_fc": "Брайтон", "manchester_united": "Манчестер Юнайтед", "nottingham_forest": "Ноттингем Форест", "aston_villa": "Астон Вилла", "newcastle_united": "Ньюкасл", "leeds_united": "Лидс Юнайтед", "crystal_palace": "Кристал Пэлас", "sunderland_afc": "Сандерленд", "brentford_fc": "Брентфорд", "hull_city": "Халл Сити", "fulham_fc": "Фулхэм", "afc_bournemouth": "Борнмут", "ipswich_town": "Ипсвич Таун", "coventry_city": "Ковентри Сити"};
+        const teamBadges = {"Арсенал": "https://pictures.cdn.sports.ru/Ee7dAj2jR4csc31Wi2x3nUrVwzbTHLgeprZCkDUYGAA/fill/64/64/no/1/czM6Ly9zcG9ydHMtYmFja2VuZC1zdGF0LXBpY3R1cmVzLXh3enltd3NyL1RFQU0vbWFpbi9hcnNlbmFsXzE3NTkzNDQ3NzkucG5n.png", "Манчестер Сити": "https://pictures.cdn.sports.ru/4g-cUfJdl79gp34HJ7dLZuMqwzek9s9wQAYNqRy36VE/fill/64/64/no/1/czM6Ly9zcG9ydHMtYmFja2VuZC1zdGF0LXBpY3R1cmVzLXh3enltd3NyL1RFQU0vbWFpbi9tYW5jaGVzdGVyX2NpdHlfMTc1OTM0NDk0MC5wbmc.png", "Лидс Юнайтед": "https://pictures.cdn.sports.ru/UwipEGZkUhtxdbYim1KHJb8_XFb-G3BVbyn5asxxy9k/fill/64/64/no/1/czM6Ly9zcG9ydHMtYmFja2VuZC1zdGF0LXBpY3R1cmVzLXh3enltd3NyL1RFQU0vbWFpbi9sZWVkc191bml0ZWRfMTc3OTYxMjA5Ni5wbmc.png", "Халл Сити": "https://pictures.cdn.sports.ru/ee5fxSqqteVrpcQIIw8Hc64p5LBvgcA1EdVuPljTjHM/fill/64/64/no/1/czM6Ly9zcG9ydHMtYmFja2VuZC1zdGF0LXBpY3R1cmVzLXh3enltd3NyL1RFQU0vbWFpbi9odWxsX2NpdHlfMTc3OTYxMTc4Ny5wbmc.png", "Брайтон": "https://pictures.cdn.sports.ru/oVmNK4dil3otoh_if8_2aq9wzn3OX4dZU81OqBraUbw/fill/64/64/no/1/czM6Ly9zcG9ydHMtYmFja2VuZC1zdGF0LXBpY3R1cmVzLXh3enltd3NyL1RFQU0vbWFpbi9icmlnaHRvbl9ob3ZlX2FsYmlvbl9mY18xNzY0NzU0ODY1LnBuZw.png", "Челси": "https://pictures.cdn.sports.ru/evSRwT2VGclHw-rx7-MY3ebMcrtB4jVLPYibIExwxWU/fill/64/64/no/1/czM6Ly9zcG9ydHMtYmFja2VuZC1zdGF0LXBpY3R1cmVzLXh3enltd3NyL1RFQU0vbWFpbi9jaGVsc2VhXzE3NTkyNTgzNDQucG5n.png", "Брентфорд": "https://pictures.cdn.sports.ru/naHlVxOXpuSEj9QFWDqTppbEJ85oN2bqeYD45Cs_bGc/fill/64/64/no/1/czM6Ly9zcG9ydHMtYmFja2VuZC1zdGF0LXBpY3R1cmVzLXh3enltd3NyL1RFQU0vbWFpbi9icmVudGZvcmRfZmNfMTc2NDc1NDg1NC5wbmc.png", "Ливерпуль": "https://pictures.cdn.sports.ru/zBTj-FnAf3JY7ySQZ_V5dR6Rknrsu-DrsM1Od9gJVTg/fill/64/64/no/1/czM6Ly9zcG9ydHMtYmFja2VuZC1zdGF0LXBpY3R1cmVzLXh3enltd3NyL1RFQU0vbWFpbi9saXZlcnBvb2xfMTc3OTYxMjEzNy5wbmc.png", "Эвертон": "https://pictures.cdn.sports.ru/CuFT6lTn9iO_llJZD4Ce57b0hsmYLK9BAXTBjoVhJ4M/fill/64/64/no/1/czM6Ly9zcG9ydHMtYmFja2VuZC1zdGF0LXBpY3R1cmVzLXh3enltd3NyL1RFQU0vbWFpbi9ldmVydG9uX2ZjXzE3NjQ3NTA2MTQucG5n.png", "Ипсвич Таун": "https://pictures.cdn.sports.ru/gvIOV5nYK_mxUNcBXsTwUY4awLvFpEUPyF-Zm1b54qg/fill/64/64/no/1/czM6Ly9zcG9ydHMtYmFja2VuZC1zdGF0LXBpY3R1cmVzLXh3enltd3NyL1RFQU0vbWFpbi9pcHN3aWNoX3Rvd25fMTc3OTYxMTk2Ni5wbmc.png", "Ноттингем Форест": "https://pictures.cdn.sports.ru/qL6FotRXvb5rjSxep-guI24CtWYzkC1n3-o7RpgHeTw/fill/64/64/no/1/czM6Ly9zcG9ydHMtYmFja2VuZC1zdGF0LXBpY3R1cmVzLXh3enltd3NyL1RFQU0vbWFpbi9ub3R0aW5naGFtX2ZvcmVzdF8xNzc5NjEyMTIzLnBuZw.png", "Ньюкасл": "https://pictures.cdn.sports.ru/nAoucbq-Zu8it_6cQ5otAm8bi6YgNcypLKD7HmYWvtU/fill/64/64/no/1/czM6Ly9zcG9ydHMtYmFja2VuZC1zdGF0LXBpY3R1cmVzLXh3enltd3NyL1RFQU0vbWFpbi9uZXdjYXN0bGVfdW5pdGVkXzE3NTkzNDQ1MzEucG5n.png", "Манчестер Юнайтед": "https://pictures.cdn.sports.ru/SoaDWhGNvmQrxkB41h0gpfUfbXAPLh4wddNRUmBfAYI/fill/64/64/no/1/czM6Ly9zcG9ydHMtYmFja2VuZC1zdGF0LXBpY3R1cmVzLXh3enltd3NyL1RFQU0vbWFpbi9tYW5jaGVzdGVyX3VuaXRlZF8xNzY0NzU0OTAzLnBuZw.png", "Сандерленд": "https://pictures.cdn.sports.ru/aMC0TiPMIkAs9V2P_s4lit9tTpQATVz68pEtBynl7yo/fill/64/64/no/1/czM6Ly9zcG9ydHMtYmFja2VuZC1zdGF0LXBpY3R1cmVzLXh3enltd3NyL1RFQU0vbWFpbi9zdW5kZXJsYW5kX2FmY18xNzc5NjEyMTA4LnBuZw.png", "Борнмут": "https://pictures.cdn.sports.ru/Vv7t40V27gu0lbdfhu1Qj_47vpIahskczMjMi-LjPfE/fill/64/64/no/1/czM6Ly9zcG9ydHMtYmFja2VuZC1zdGF0LXBpY3R1cmVzLXh3enltd3NyL1RFQU0vbWFpbi9hZmNfYm91cm5lbW91dGhfMTc2NDc1MDU5OS5wbmc.png", "Кристал Пэлас": "https://pictures.cdn.sports.ru/zSljImLenJezfXXBjG8tNwf5qJwvVO7kWkqOeybCcms/fill/64/64/no/1/czM6Ly9zcG9ydHMtYmFja2VuZC1zdGF0LXBpY3R1cmVzLXh3enltd3NyL1RFQU0vbWFpbi9jcnlzdGFsX3BhbGFjZV8xNzY0NzU0ODkwLnBuZw.png", "Тоттенхэм Хотспур": "https://pictures.cdn.sports.ru/J_UIpWjT7I3dFW_B6quy2FCnxC59wjltaRaTkgUTafo/fill/64/64/no/1/czM6Ly9zcG9ydHMtYmFja2VuZC1zdGF0LXBpY3R1cmVzLXh3enltd3NyL1RFQU0vbWFpbi90b3R0ZW5oYW1faG90c3B1cl8xNzQ3ODEyNTQxLnBuZw.png", "Фулхэм": "https://pictures.cdn.sports.ru/-Q-0IR-9D-K8Hq0ytA1YPsYW8W9YjaHBe-QAe7kUq7U/fill/64/64/no/1/czM6Ly9zcG9ydHMtYmFja2VuZC1zdGF0LXBpY3R1cmVzLXh3enltd3NyL1RFQU0vbWFpbi9mdWxoYW1fZmNfMTc2NDc1MDU4Ni5wbmc.png", "Астон Вилла": "https://pictures.cdn.sports.ru/BKnS6kmMMZNvhSplg-eLMI_4AK_wKPj5zqogUz9RNok/fill/64/64/no/1/czM6Ly9zcG9ydHMtYmFja2VuZC1zdGF0LXBpY3R1cmVzLXh3enltd3NyL1RFQU0vbWFpbi9hc3Rvbl92aWxsYV8xNzU4ODI5NTE2LnBuZw.png", "Ковентри Сити": "https://pictures.cdn.sports.ru/lpkMuocMjdyaUj1WB_3jLB0lfnAugFmRN79wrm-IU9o/fill/64/64/no/1/czM6Ly9zcG9ydHMtYmFja2VuZC1zdGF0LXBpY3R1cmVzLXh3enltd3NyL1RFQU0vbWFpbi9jb3ZlbnRyeV9jaXR5XzE3Nzk2MTE4MDQucG5n.png"};
 
         const fplIds = { denis: '598822', dima: '611237', ilya: '611230', league: '44945' };
         const GRAPHQL_URL = 'https://www.sports.ru/gql/graphql/';
@@ -515,65 +495,60 @@
             if (refreshingFantasy || document.hidden || !navigator.onLine) return;
             refreshingFantasy = true;
             try {
-                await loadFPLData(true);
+                await Promise.allSettled([loadFPLData(true), updateAllData(true)]);
                 if (!document.getElementById('squadPanel').hidden) await loadSquad();
             } finally { refreshingFantasy = false; }
         }
 
+        const TABLE_QUERY = `{fantasyQueries{tournament(id:"england",source:HRU){currentSeason{statObject{id name stages{teamStanding{total{rank played win draw loss goalsFor goalsAgainst goalDiff points team{id name logotype(input:{resize:SIZE_64_64}){url}}}}}}}}}}`;
+        function parseLeagueTable(payload) {
+            if (payload.errors?.length) throw new Error(payload.errors.map(e => e.message).join('; '));
+            const season = payload.data?.fantasyQueries?.tournament?.currentSeason?.statObject;
+            const rows = season?.stages?.flatMap(stage => stage.teamStanding?.total || []) || [];
+            if (rows.length !== 20 || new Set(rows.map(r => r.team?.id)).size !== 20 || new Set(rows.map(r => r.rank)).size !== 20) {
+                throw new Error(`Источник вернул неполную таблицу: ${rows.length}/20 команд`);
+            }
+            const table = rows.map(r => {
+                for (const field of ['rank','played','win','draw','loss','goalsFor','goalsAgainst','goalDiff','points']) {
+                    if (!Number.isInteger(r[field])) throw new Error('Некорректная статистика команды');
+                }
+                if (r.rank < 1 || r.rank > 20) throw new Error('Некорректное место команды');
+                const badge = r.team.logotype?.url;
+                if (!badge || new URL(badge).protocol !== 'https:') throw new Error('Нет эмблемы команды');
+                return {pos:r.rank, team:teamNamesById[r.team.id] || r.team.name, badge,
+                    played:r.played, won:r.win, drawn:r.draw, lost:r.loss,
+                    goalsFor:r.goalsFor, goalsAgainst:r.goalsAgainst, goalDiff:r.goalDiff, points:r.points};
+            }).sort((a,b) => a.pos-b.pos);
+            return {table,season:season.name};
+        }
+
         async function fetchTableFromAPI() {
-            try {
-                const response = await fetch('https://www.thesportsdb.com/api/v1/json/3/lookuptable.php?l=4328');
-                if (!response.ok) throw new Error('API error');
-                const data = await response.json();
-                return data.table.map((team, index) => ({
-                    pos: index + 1, team: mapTeamName(team.strTeam),
-                    played: parseInt(team.intPlayed) || 0, won: parseInt(team.intWin) || 0,
-                    drawn: parseInt(team.intDraw) || 0, lost: parseInt(team.intLoss) || 0,
-                    goalsFor: parseInt(team.intGoalsFor) || 0, goalsAgainst: parseInt(team.intGoalsAgainst) || 0,
-                    goalDiff: parseInt(team.intGoalDifference) || 0, points: parseInt(team.intPoints) || 0
-                }));
-            } catch (error) { return getFallbackData(); }
+            const url = new URL(GRAPHQL_URL);
+            url.searchParams.set('query', TABLE_QUERY);
+            const response = await fetch(USE_SAVED_DATA ? './data/table.json' : url, {cache:'no-store',credentials:'omit',signal:AbortSignal.timeout(20000)});
+            if (!response.ok) throw new Error(`Sports.ru: HTTP ${response.status}`);
+            const payload = await response.json();
+            const result = parseLeagueTable(payload);
+            const stamp = USE_SAVED_DATA ? new Date(payload.updatedAt) : new Date();
+            if (!Number.isFinite(stamp.getTime())) throw new Error('Неизвестна дата таблицы');
+            return {...result,stamp};
         }
 
-        function mapTeamName(name) {
-            const m = { 'Arsenal': 'Арсенал', 'Manchester City': 'Манчестер Сити', 'Chelsea': 'Челси', 'Liverpool': 'Ливерпуль', 'Everton': 'Эвертон', 'Tottenham Hotspur': 'Тоттенхэм Хотспур', 'Brighton': 'Брайтон', 'Manchester United': 'Манчестер Юнайтед', 'Nottingham Forest': 'Ноттингем Форест', 'Aston Villa': 'Астон Вилла', 'Newcastle': 'Ньюкасл', 'Leeds United': 'Лидс Юнайтед', 'Crystal Palace': 'Кристал Пэлас', 'Sunderland': 'Сандерленд', 'Brentford': 'Брентфорд', 'Hull City': 'Халл Сити', 'Fulham': 'Фулхэм', 'Bournemouth': 'Борнмут', 'Ipswich Town': 'Ипсвич Таун', 'Coventry City': 'Ковентри Сити' };
-            return m[name] || name;
-        }
-
-        function getFallbackData() {
-            return [
-                { pos: 1, team: 'Арсенал', played: 4, won: 4, drawn: 0, lost: 0, goalsFor: 8, goalsAgainst: 1, goalDiff: 7, points: 12 },
-                { pos: 2, team: 'Манчестер Сити', played: 4, won: 4, drawn: 0, lost: 0, goalsFor: 8, goalsAgainst: 2, goalDiff: 6, points: 12 },
-                { pos: 3, team: 'Халл Сити', played: 4, won: 2, drawn: 2, lost: 0, goalsFor: 5, goalsAgainst: 2, goalDiff: 3, points: 8 },
-                { pos: 4, team: 'Брайтон', played: 4, won: 2, drawn: 1, lost: 1, goalsFor: 13, goalsAgainst: 5, goalDiff: 8, points: 7 },
-                { pos: 5, team: 'Челси', played: 4, won: 2, drawn: 1, lost: 1, goalsFor: 10, goalsAgainst: 9, goalDiff: 1, points: 7 },
-                { pos: 6, team: 'Брентфорд', played: 4, won: 1, drawn: 3, lost: 0, goalsFor: 7, goalsAgainst: 4, goalDiff: 3, points: 6 },
-                { pos: 7, team: 'Ливерпуль', played: 4, won: 1, drawn: 3, lost: 0, goalsFor: 6, goalsAgainst: 4, goalDiff: 2, points: 6 },
-                { pos: 8, team: 'Эвертон', played: 4, won: 1, drawn: 3, lost: 0, goalsFor: 5, goalsAgainst: 3, goalDiff: 2, points: 6 },
-                { pos: 9, team: 'Ипсвич Таун', played: 4, won: 2, drawn: 0, lost: 2, goalsFor: 7, goalsAgainst: 10, goalDiff: -3, points: 6 },
-                { pos: 10, team: 'Ньюкасл', played: 3, won: 1, drawn: 2, lost: 0, goalsFor: 6, goalsAgainst: 4, goalDiff: 2, points: 5 },
-                { pos: 11, team: 'Лидс Юнайтед', played: 3, won: 1, drawn: 2, lost: 0, goalsFor: 3, goalsAgainst: 2, goalDiff: 1, points: 5 },
-                { pos: 12, team: 'Ноттингем Форест', played: 4, won: 1, drawn: 2, lost: 1, goalsFor: 4, goalsAgainst: 4, goalDiff: 0, points: 5 },
-                { pos: 13, team: 'Манчестер Юнайтед', played: 4, won: 1, drawn: 1, lost: 2, goalsFor: 7, goalsAgainst: 7, goalDiff: 0, points: 4 },
-                { pos: 14, team: 'Сандерленд', played: 4, won: 1, drawn: 1, lost: 2, goalsFor: 3, goalsAgainst: 5, goalDiff: -2, points: 4 },
-                { pos: 15, team: 'Борнмут', played: 4, won: 0, drawn: 3, lost: 1, goalsFor: 6, goalsAgainst: 7, goalDiff: -1, points: 3 },
-                { pos: 16, team: 'Кристал Пэлас', played: 4, won: 1, drawn: 0, lost: 3, goalsFor: 6, goalsAgainst: 11, goalDiff: -5, points: 3 },
-                { pos: 17, team: 'Тоттенхэм Хотспур', played: 4, won: 0, drawn: 2, lost: 2, goalsFor: 0, goalsAgainst: 5, goalDiff: -5, points: 2 },
-                { pos: 18, team: 'Фулхэм', played: 4, won: 0, drawn: 1, lost: 3, goalsFor: 4, goalsAgainst: 7, goalDiff: -3, points: 1 },
-                { pos: 19, team: 'Астон Вилла', played: 4, won: 0, drawn: 1, lost: 3, goalsFor: 1, goalsAgainst: 7, goalDiff: -6, points: 1 },
-                { pos: 20, team: 'Ковентри Сити', played: 4, won: 0, drawn: 0, lost: 4, goalsFor: 0, goalsAgainst: 10, goalDiff: -10, points: 0 }
-            ];
-        }
-
-        async function updateAllData() {
+        async function updateAllData(silent = false) {
             const btn = document.getElementById('updateBtn');
+            if (btn.disabled) return;
             btn.classList.add('loading'); btn.disabled = true;
             try {
-                currentTable = await fetchTableFromAPI();
-                renderCurrentTable(); renderComparison();
-                showNotification('Таблица обновлена! (все 20 команд)', 'success');
-            } catch (e) { showNotification('Ошибка обновления', 'error'); }
-            finally { btn.classList.remove('loading'); btn.disabled = false; }
+                const result = await fetchTableFromAPI();
+                currentTable = result.table;
+                currentTable.forEach(t => {teamBadges[t.team] = t.badge;});
+                renderCurrentTable(); renderComparison(); renderPredictions(); renderTeams();
+                document.getElementById('tableStatus').textContent = `Sports.ru · ${result.season} · 20 команд · Обновлено ${result.stamp.toLocaleString()}${Date.now()-result.stamp.getTime()>1200000 ? ' · Данные устарели' : ''}`;
+                if (!silent) showNotification('Таблица обновлена: 20 команд', 'success');
+            } catch (e) {
+                document.getElementById('tableStatus').textContent = `${e.message}. ${currentTable.length ? 'Показана последняя загруженная таблица.' : 'Повторите обновление.'}`;
+                if (!silent) showNotification('Не удалось обновить таблицу', 'error');
+            } finally { btn.classList.remove('loading'); btn.disabled = false; }
         }
 
         function renderCurrentTable() {

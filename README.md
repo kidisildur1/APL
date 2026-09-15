@@ -30,3 +30,10 @@ Sports.ru не выдаёт разрешение CORS для github.io. Поэт
 Справка GitHub:
 - https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages
 - https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#schedule
+
+## Таблица АПЛ
+
+Таблица и эмблемы всех 20 клубов загружаются из Sports.ru для текущего сезона.
+Сборщик публикует data/table.json вместе с Fantasy; браузер обновляет таблицу раз в минуту.
+Неполный ответ, повторяющиеся команды и отсутствующие эмблемы отклоняются.
+При сетевой ошибке остаётся последняя таблица с сообщением об ошибке. Статические результаты не подставляются.
