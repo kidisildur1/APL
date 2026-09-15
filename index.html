@@ -257,7 +257,7 @@
                 <div id="squadPlayers"></div>
             </section>
             </div>
-            <div id="fplAthleticsLeague" class="league-panel" hidden><div class="table-wrapper"><div class="table-header"><h2>🏟 Атлетики — общий зачёт</h2></div><div class="fpl-leaderboard" id="athleticsLeaderboard"></div></div><p class="pitch-caption">Составы и подробный разбор этой лиги находятся во вкладке «Анализ тура».</p></div>
+            <div id="fplAthleticsLeague" class="league-panel" hidden><div class="table-wrapper"><div class="table-header"><h2>🏟 Атлетики — общий зачёт</h2></div><div class="fpl-leaderboard" id="athleticsLeaderboard"></div></div><section class="user-section" aria-label="Состав Атлетиков"><h2 class="section-title">Состав команды</h2><div class="squad-toolbar"><label>Команда <select id="athleticsSquadUser" onchange="loadAthleticsSquad()"><option>Загрузка…</option></select></label><span class="pitch-caption">Последний завершённый тур</span></div><p id="athleticsSquadStatus" role="status"></p><div id="athleticsSquadPlayers"></div></section></div>
         </div>
 
         <div id="tour-analysis" class="tab-content">
@@ -521,6 +521,7 @@
         }
 
         let fantasySeason = null;
+        let athleticsSquadData = null;
         async function renderAthleticsLeague() {
             const host = document.getElementById('athleticsAnalysis');
             try {
@@ -530,8 +531,11 @@
                 ]);
                 const league = ratingFile.data?.fantasyQueries?.league;
                 const rating = ratingFile.data?.fantasyQueries?.rating?.squads?.list || [];
+                athleticsSquadData = {rating, squadsFile};
                 const board = document.getElementById('athleticsLeaderboard');
                 if (board) board.innerHTML = rating.map(row => `<div class="fpl-card"><div class="fpl-rank">#${row.scoreInfo.place}</div><div class="fpl-name">${escapeHTML(row.squad.name)}</div><div style="font-size:2.5rem;font-weight:800">${row.scoreInfo.score}</div><div>очков · ${row.scoreInfo.scoreForLastTour} за последний тур</div></div>`).join('');
+                const select = document.getElementById('athleticsSquadUser');
+                if (select && !select.dataset.ready) { select.innerHTML = rating.map(row => `<option value="${escapeHTML(row.squad.id)}">#${row.scoreInfo.place} · ${escapeHTML(row.squad.name)}</option>`).join(''); select.dataset.ready='true'; loadAthleticsSquad(); }
                 const names = Object.fromEntries(rating.map(row => [row.squad.id, row.squad.name]));
                 const all = Object.entries(squadsFile.squads || {}).flatMap(([id, squad]) => (squad.players || []).map(p => ({...p, score:Number(p.score ?? 0), owner:names[id] || 'Команда'})));
                 const best = all.filter(p => p.isStarting).sort((a,b) => b.score-a.score).slice(0,6);
@@ -543,6 +547,20 @@
                 const item = p => `<div class="impact-item">${kit(p)}<div><div class="impact-name">${escapeHTML(p.seasonPlayer.name)}</div><div class="impact-team">${escapeHTML(p.owner)} · ${escapeHTML(p.seasonPlayer.team?.name || '')}${p.isCaptain?' · КАПИТАН':''}</div></div><div class="impact-points">${p.score}<small>очков</small></div></div>`;
                 host.innerHTML = `<div class="meme-ticker"><span>🎪 АТЛЕТИКИ В ЭФИРЕ · ИНДЕКС ХАОСА ${chaos}% · КАПИТАНЫ ПОД ДАВЛЕНИЕМ · ЛАВКА СНОВА ВСЁ ЗНАЛА · 🎪</span></div><div class="chaos-banner"><span><i class="chaos-dot"></i>${escapeHTML(league?.name || 'Лига')} · ${rating.length} команд</span><span>🎪 Второй дивизион хаоса</span></div><div class="roast-grid"><article class="roast-card roast-hot" data-stamp="🧨"><small>ИНДЕКС ХАОСА</small><strong>${chaos}%</strong><p>${chaos>60?'Тут уже нужен VAR и коллективный психолог.':'Пока только лёгкая паника.'}</p></article><article class="roast-card" data-stamp="👑"><small>КАПИТАНСКИЙ РИСК</small><strong>${captain ? captain.score+' очк.' : '—'}</strong><p>${captain ? escapeHTML(captain.seasonPlayer.name)+' · '+escapeHTML(captain.owner) : 'Капитан скрывается.'}</p></article><article class="roast-card roast-acid" data-stamp="🪑"><small>БАНКА БОЛИ</small><strong>${bench.reduce((s,p)=>s+p.score,0)} очк.</strong><p>Запасные снова смотрят с укором.</p></article><article class="roast-card" data-stamp="🫥"><small>РЕЖИМ НЕВИДИМКИ</small><strong>${zeros.length} чел.</strong><p>Стартовые игроки с 0–1 очком.</p></article></div><div class="tour-analysis"><article class="analysis-hero"><div class="analysis-eyebrow">${escapeHTML(squadsFile.tour?.name || 'Тур')} · public league scan</div><h3>12 команд. Один мяч. Ноль спокойствия.</h3><p>Полный рейтинг второй лиги и разбор публичных составов: кто принёс максимум, а кто оставил очки на скамейке.</p><div class="analysis-stickers"><span class="sticker">👑 ${escapeHTML(rating[0]?.squad?.name || '—')}</span><span class="sticker">📊 ${rating[0]?.scoreInfo?.score || '—'} очк.</span><span class="sticker">🪑 ${bench.reduce((s,p)=>s+p.score,0)} очк. на лавке</span></div></article><div class="analysis-side"><article class="fun-card"><span class="fun-emoji">🏆</span><h4>Топ рейтинга</h4><p>${rating.slice(0,3).map(r => '#'+r.scoreInfo.place+' '+escapeHTML(r.squad.name)).join('<br>')}</p></article><article class="fun-card"><span class="fun-emoji">🛋️</span><h4>Лавка в огне</h4><p>${bench.length ? escapeHTML(bench[0].seasonPlayer.name)+' набрал '+bench[0].score+' очков вне старта.' : 'На лавке без сюжета.'}</p></article></div></div><div class="impact-grid"><section class="impact-panel"><h3>🚀 Лучшие игроки лиги</h3>${best.map(item).join('')}</section><section class="impact-panel"><h3>🪑 Топ очков на замене</h3>${bench.length?bench.map(item).join(''):'<div class="analysis-empty">Лавка молчит</div>'}</section><section class="impact-panel"><h3>📈 Рейтинг лиги</h3>${rating.slice(0,6).map(row=>`<div class="impact-item"><span class="impact-kit">${row.scoreInfo.place<=3?['🥇','🥈','🥉'][row.scoreInfo.place-1]:'⚽'}</span><div><div class="impact-name">${escapeHTML(row.squad.name)}</div><div class="impact-team">${row.scoreInfo.scoreForLastTour} очк. за тур</div></div><div class="impact-points">${row.scoreInfo.score}<small>всего</small></div></div>`).join('')}</section></div>`;
             } catch (error) { host.innerHTML = `<div class="analysis-empty">⚠️ Не удалось загрузить вторую лигу: ${escapeHTML(error.message)}</div>`; }
+        }
+        function loadAthleticsSquad() {
+            const select = document.getElementById('athleticsSquadUser');
+            const host = document.getElementById('athleticsSquadPlayers');
+            const status = document.getElementById('athleticsSquadStatus');
+            const id = select?.value;
+            const info = athleticsSquadData?.squadsFile?.squads?.[id];
+            const row = athleticsSquadData?.rating?.find(item => item.squad.id === id);
+            if (!info?.players) { status.textContent='Состав загружается…'; return; }
+            const roles={GOALKEEPER:'Вратари',DEFENDER:'Защитники',MIDFIELDER:'Полузащитники',FORWARD:'Нападающие'};
+            const playerHTML=p=>{const kit=p.seasonPlayer.team?.svgKit?.url;return `<div class="pitch-player" title="${escapeHTML(p.seasonPlayer.name)} · ${p.score ?? 0} очков"><div class="kit-wrap">${kit?`<img src="${escapeHTML(kit)}" alt="Форма" loading="lazy">`:'<span class="kit-placeholder">👕</span>'}${p.isCaptain?'<span class="captain-marker">C</span>':p.isViceCaptain?'<span class="captain-marker vice">V</span>':''}</div><strong>${escapeHTML(p.seasonPlayer.name)}</strong><small>${escapeHTML(p.seasonPlayer.team?.name||'')} · ${Number(p.score??0)} очк.</small></div>`};
+            const starters=info.players.filter(p=>p.isStarting), bench=info.players.filter(p=>!p.isStarting).sort((a,b)=>(a.substitutePriority??99)-(b.substitutePriority??99));
+            host.innerHTML=`<div class="pitch-caption">${escapeHTML(row?.squad?.name||'Команда')} · ${escapeHTML(info.tour?.name||athleticsSquadData.squadsFile.tour?.name||'Тур')} · старт и запасные с очками</div><div class="fantasy-pitch"><div class="pitch-lines"><div class="pitch-box"></div><div class="pitch-box bottom"></div></div>${Object.keys(roles).map(role=>`<div class="pitch-row" aria-label="${roles[role]}">${starters.filter(p=>p.seasonPlayer.role===role).map(playerHTML).join('')}</div>`).join('')}</div><div class="pitch-bench"><h3>Запасные · порядок замен</h3><div class="pitch-row">${bench.map(playerHTML).join('')}</div></div>`;
+            status.textContent=`${info.tour?.name||athleticsSquadData.squadsFile.tour?.name} · ${row?.scoreInfo?.scoreForLastTour??'—'} очков команды за тур · Sports.ru`;
         }
         let squadRequest = 0;
         let squadAbort = null;
